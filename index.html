@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Manager English v1.1</title>
+<title>Manager English v1.4</title>
 <style>
   /* === 全体のレイアウト === */
   body {
@@ -127,7 +127,8 @@
     border-radius: 25px 25px 0 0;
     transform: translateY(110%);
     transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
-    display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; z-index: 200;
+    display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; 
+    z-index: 400; /* スタート画面より上に */
     box-shadow: 0 -10px 30px rgba(0,0,0,0.8);
   }
   #expOverlay.show { transform: translateY(0); }
@@ -171,17 +172,14 @@
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
   
-  /* リセットボタン（スタイル調整） */
   .reset-btn {
     margin-top: 30px; 
-    margin-bottom: 0;
     padding: 12px 25px; 
     background: transparent;
     border: 1px solid #555; border-radius: 20px;
     color: #888; font-size: 0.85rem; cursor: pointer;
     transition: all 0.2s;
     font-family: inherit;
-    /* タッチ操作を明示 */
     touch-action: manipulation;
   }
   .reset-btn:active {
@@ -225,7 +223,7 @@
 
   <div id="expOverlay">
     <div id="expContent"></div>
-    <div class="next-btn" onclick="nextQuestion()">NEXT</div>
+    <div class="next-btn" id="nextBtn" onclick="nextQuestion()">NEXT</div>
   </div>
 
   <div id="startScreen">
@@ -239,7 +237,7 @@
       ▶ GAME START
     </button>
     
-    <button class="reset-btn" onclick="tryReset(this)" ontouchstart="">RESET SAVE DATA</button>
+    <button class="reset-btn" onclick="confirmReset()">RESET SAVE DATA</button>
   </div>
 </div>
 
@@ -347,15 +345,13 @@
   let timerInterval = null;
   let timeLeft = 100;
   let combo = 0;
-  
-  // ★リセット用ステート
-  let resetStep = 0; // 0:通常, 1:確認中
 
   // ==========================================
   //  3. ゲーム開始フロー
   // ==========================================
   
   function startDiagnosis() {
+    prepareAudio(); 
     document.getElementById('startScreen').style.display = 'none';
     currentMode = 'diagnosis';
     currentQ = 0;
@@ -366,6 +362,7 @@
   }
 
   function startGame() {
+    prepareAudio(); 
     document.getElementById('startScreen').style.display = 'none';
     currentMode = 'normal';
     feedQuestions = [...vocabQuestions, ...grammarQuestions, ...readingQuestions];
@@ -375,6 +372,13 @@
     playBGM();
     loadQuestion();
     updateStats();
+  }
+
+  function prepareAudio() {
+    const bgm = document.getElementById('bgm');
+    const track = Math.floor(Math.random() * 10) + 1;
+    if(bgm.src === "") bgm.src = track + ".mp3";
+    bgm.load(); 
   }
 
   function backToTitle() {
@@ -391,32 +395,48 @@
     document.getElementById('comboContainer').style.opacity = "0";
     document.getElementById('expOverlay').classList.remove('show');
     document.getElementById('startScreen').style.display = 'flex';
-    
-    // リセットボタンの状態を戻す
-    resetStep = 0;
-    const rBtn = document.querySelector('.reset-btn');
-    if(rBtn) {
-      rBtn.innerText = "RESET SAVE DATA";
-      rBtn.style.borderColor = "#555";
-      rBtn.style.color = "#888";
-    }
   }
 
   function playBGM() {
     const bgm = document.getElementById('bgm');
-    const track = Math.floor(Math.random() * 10) + 1; 
-    
     if(bgm.paused) {
-      bgm.src = track + ".mp3";
       bgm.volume = 0.3;
       bgm.muted = false; 
-      bgm.play().catch(e => console.log("Auto-play blocked"));
+      bgm.play().catch(e => console.log("BGM Play Error:", e));
       document.getElementById('muteBtn').innerText = "🔊";
     }
   }
 
   // ==========================================
-  //  4. 問題表示 & タイマー
+  //  4. リセット機能 (★修正: Flexboxでレイアウト整形)
+  // ==========================================
+  function confirmReset() {
+    showOverlay(`
+      <div class="exp-result" style="color:#ff0055; font-size:1.5rem;">⚠️ WARNING</div>
+      <div class="exp-body" style="text-align:center;">
+        本当にデータを消しますか？<br>
+        Lv.${devValue.toFixed(1)} の記録が消えます。<br><br>
+        
+        <div style="display:flex; flex-direction:column; gap:15px; align-items:center; margin-top:20px;">
+          <button class="btn" onclick="executeReset()" style="width:100%; max-width:200px; padding:10px; background:#ff0055; text-align:center; font-weight:bold;">YES, DELETE</button>
+          
+          <button class="btn" onclick="cancelReset()" style="width:100%; max-width:200px; padding:10px; background:transparent; border:1px solid #666; text-align:center; font-size:0.9rem;">CANCEL</button>
+        </div>
+      </div>
+    `, false);
+  }
+
+  function executeReset() {
+    localStorage.removeItem('myDevValue');
+    location.reload();
+  }
+
+  function cancelReset() {
+    document.getElementById('expOverlay').classList.remove('show');
+  }
+
+  // ==========================================
+  //  5. 問題表示 & タイマー
   // ==========================================
   function loadQuestion() {
     resetTimer(); 
@@ -525,7 +545,7 @@
     showOverlay(
       `<div class="exp-result" style="color:#ff0055;">⏰ TIME UP!</div>
        <div class="exp-question-ref">Q. ${q.question.replace(/\n/g, ' ')}</div>
-       <div class="exp-body">遅い！判断遅い！</div>`, false
+       <div class="exp-body">遅い！判断遅い！</div>`, true
     );
     if(currentMode !== 'diagnosis') { devValue -= 1.0; updateStats(); }
   }
@@ -564,7 +584,7 @@
          <div class="exp-meaning">${q.meaning}</div>
          <div class="exp-manager">💡 Manager's:</div>
          <div class="exp-body">${q.msg_correct}</div>
-         <div class="exp-rule">📝 Rule:<br>${q.grammar_rule}</div>`
+         <div class="exp-rule">📝 Rule:<br>${q.grammar_rule}</div>`, true
       );
     } else {
       btnElement.classList.add('shake'); 
@@ -574,7 +594,7 @@
          <div class="exp-meaning">${q.meaning}</div>
          <div class="exp-manager">💡 Manager's:</div>
          <div class="exp-body">${q.msg_wrong}</div>
-         <div class="exp-rule">📝 Rule:<br>${q.grammar_rule}</div>`
+         <div class="exp-rule">📝 Rule:<br>${q.grammar_rule}</div>`, true
       );
     }
   }
@@ -595,7 +615,7 @@
         <div class="exp-meaning">${q.meaning}</div>
         <div class="exp-manager">💡 Manager's:</div>
         <div class="exp-body">${q.exp}</div>
-      `);
+      `, true);
     } else {
       combo = 0; document.getElementById('feverEffect').style.opacity = "0";
       devValue -= 0.5; updateStats();
@@ -606,7 +626,7 @@
         <div class="exp-meaning">${q.meaning}</div>
         <div class="exp-manager">💡 Manager's:</div>
         <div class="exp-body">${q.exp}</div>
-      `);
+      `, true);
     }
   }
 
@@ -625,7 +645,7 @@
         <div class="exp-meaning">${q.meaning}</div>
         <div class="exp-manager">💡 Point:</div>
         <div class="exp-body">${q.explanation}</div>
-      `);
+      `, true);
     } else {
       combo = 0; document.getElementById('feverEffect').style.opacity = "0";
       devValue -= 1.0; updateStats();
@@ -636,7 +656,7 @@
         <div class="exp-meaning">${q.meaning}</div>
         <div class="exp-manager">💡 Point:</div>
         <div class="exp-body">${q.explanation}</div>
-      `);
+      `, true);
     }
   }
 
@@ -659,14 +679,20 @@
       <div class="exp-meaning">${q.title}</div>
       <div class="exp-manager">📝 あらすじ＆全訳:</div>
       <div style="font-size:0.95rem; color:#ffab91; line-height:1.8;">${q.full_jp}</div>
-    `);
+    `, true);
   }
 
   // ==========================================
   //  共通処理
   // ==========================================
-  function showOverlay(html) {
+  function showOverlay(html, showNextBtn) {
     document.getElementById('expContent').innerHTML = html;
+    const nextBtn = document.getElementById('nextBtn');
+    if(showNextBtn) {
+      nextBtn.style.display = 'block';
+    } else {
+      nextBtn.style.display = 'none'; // リセット確認時はボタンを隠す
+    }
     document.getElementById('expOverlay').classList.add('show');
   }
 
@@ -697,31 +723,6 @@
     const btn = document.getElementById('muteBtn');
     if(b.muted) { b.muted = false; btn.innerText = "🔊"; }
     else { b.muted = true; btn.innerText = "🔇"; }
-  }
-
-  // ★修正: 2回タップでリセットする独自関数
-  function tryReset(btn) {
-    if (resetStep === 0) {
-      // 1回目のタップ：警告モードへ
-      btn.innerText = "REALLY? (Tap Again)";
-      btn.style.borderColor = "red";
-      btn.style.color = "red";
-      resetStep = 1;
-      
-      // 3秒経ったら元に戻す
-      setTimeout(() => {
-        if(resetStep === 1) { // まだリセットされてなければ戻す
-           btn.innerText = "RESET SAVE DATA";
-           btn.style.borderColor = "#555";
-           btn.style.color = "#888";
-           resetStep = 0;
-        }
-      }, 3000);
-    } else {
-      // 2回目のタップ：実行
-      localStorage.removeItem('myDevValue');
-      location.reload();
-    }
   }
 </script>
 </body>
