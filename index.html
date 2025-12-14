@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Manager English v1.4</title>
+<title>Manager English v1.5</title>
 <style>
   /* === 全体のレイアウト === */
   body {
@@ -376,7 +376,8 @@
 
   function prepareAudio() {
     const bgm = document.getElementById('bgm');
-    const track = Math.floor(Math.random() * 10) + 1;
+    // ★重要変更: 曲数を「10」から「3」に変更しました！
+    const track = Math.floor(Math.random() * 3) + 1;
     if(bgm.src === "") bgm.src = track + ".mp3";
     bgm.load(); 
   }
@@ -408,7 +409,7 @@
   }
 
   // ==========================================
-  //  4. リセット機能 (★修正: Flexboxでレイアウト整形)
+  //  4. リセット機能
   // ==========================================
   function confirmReset() {
     showOverlay(`
