@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Manager English v1.6 (Debug)</title>
+<title>Manager English v2.1</title>
 <style>
   /* === 全体のレイアウト === */
   body {
@@ -128,7 +128,7 @@
     transform: translateY(110%);
     transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
     display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; 
-    z-index: 400; /* スタート画面より上に */
+    z-index: 400;
     box-shadow: 0 -10px 30px rgba(0,0,0,0.8);
   }
   #expOverlay.show { transform: translateY(0); }
@@ -185,12 +185,13 @@
   .reset-btn:active {
     background: #333; color: #fff; transform: scale(0.95);
   }
-  
-  .test-btn {
-    margin-top: 10px;
-    padding: 8px 20px;
-    background: #444; border-radius: 20px; border:none;
-    color: #00f2ea; font-size: 0.8rem; cursor: pointer;
+
+  /* 診断ボタン（デバッグ用） */
+  .check-btn {
+    margin-top: 15px; padding: 10px 20px;
+    background: #333; border: 1px solid #00f2ea; border-radius: 20px;
+    color: #00f2ea; font-size: 0.85rem; cursor: pointer;
+    font-weight: bold; letter-spacing: 1px;
   }
 
   .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
@@ -244,7 +245,7 @@
       ▶ GAME START
     </button>
     
-    <button class="test-btn" onclick="testAudio()">🎵 SOUND CHECK</button>
+    <button class="check-btn" onclick="runSystemCheck()">🛠️ SYSTEM CHECK</button>
     
     <button class="reset-btn" onclick="confirmReset()">RESET SAVE DATA</button>
   </div>
@@ -383,33 +384,43 @@
     updateStats();
   }
 
-  // ★重要：デバッグ用音声テスト
-  function testAudio() {
-    const bgm = document.getElementById('bgm');
-    bgm.src = "1.mp3"; // 強制的に1.mp3を指定
-    bgm.load();
-    bgm.volume = 0.5;
-    bgm.muted = false;
+  // ★重要：完全診断プログラム
+  function runSystemCheck() {
+    const filename = "1.mp3";
+    alert("調査を開始します。\nOKを押して待ってください...");
     
-    bgm.play()
-      .then(() => {
-        alert("再生成功！\n音が聞こえない場合は「マナーモード」か「音量」を確認してください。");
+    // 手順1: ファイルが存在するかFetchで確認
+    fetch(filename)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("❌ ファイルが見つかりません (404)\n\n【原因】\nGitHubのファイル名が『" + filename + "』になっていません。\n大文字(MP3)や、mp3.mp3になっていないか確認してください。");
+        }
+        return response.blob();
       })
-      .catch((e) => {
-        alert("再生エラー発生！\n" + e.message + "\n\n(考えられる原因: ファイル名が違う / フォルダの中にある / ファイルが壊れている)");
+      .then(blob => {
+        // 手順2: ファイルはあるので再生を試みる
+        const audioUrl = URL.createObjectURL(blob);
+        const testAudio = new Audio(audioUrl);
+        testAudio.volume = 1.0;
+        
+        const playPromise = testAudio.play();
+        if (playPromise !== undefined) {
+          playPromise.then(_ => {
+            alert("✅ 成功！音が鳴っています！\n\nもしこれでも聞こえないなら、スマホ本体の『音量』か『マナーモード』が原因です。");
+          })
+          .catch(error => {
+            alert("❌ ファイルはあるけど再生できません\n\n【エラー内容】\n" + error.message);
+          });
+        }
+      })
+      .catch(error => {
+        alert(error.message);
       });
   }
 
-  // ★エラー監視機能を追加
-  document.getElementById('bgm').addEventListener('error', function(e) {
-    console.log("Audio Error:", e);
-    // ユーザーにはあえて表示しない（プレイ中に邪魔になるため）
-    // ただし testAudio() の時は catch で拾える
-  });
 
   function prepareAudio() {
     const bgm = document.getElementById('bgm');
-    // 曲数 1〜3
     const track = Math.floor(Math.random() * 3) + 1;
     if(bgm.src === "") bgm.src = track + ".mp3";
     bgm.load(); 
@@ -436,16 +447,13 @@
     if(bgm.paused) {
       bgm.volume = 0.3;
       bgm.muted = false; 
-      bgm.play().catch(e => {
-        console.log("BGM Play Error:", e);
-        // ここでのエラーはあえてアラートしない（ゲーム進行を止めないため）
-      });
+      bgm.play().catch(e => console.log("BGM Play Error:", e));
       document.getElementById('muteBtn').innerText = "🔊";
     }
   }
 
   // ==========================================
-  //  4. リセット機能
+  //  4. リセット機能 (Flexbox)
   // ==========================================
   function confirmReset() {
     showOverlay(`
