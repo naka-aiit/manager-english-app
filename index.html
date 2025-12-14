@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manager English v0.8</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Manager English v0.9</title>
 <style>
   /* === 全体のレイアウト === */
   body {
@@ -16,6 +16,7 @@
     align-items: center;
     height: 100vh;
     overflow: hidden;
+    touch-action: manipulation; /* スマホのダブルタップ拡大防止 */
   }
 
   /* === スマホ画面枠 === */
@@ -168,15 +169,20 @@
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
   
-  /* リセットボタンのスタイル強化（スマホ対応） */
+  /* リセットボタンのスタイル強化（スマホ対応） 
+     margin-bottomを大きく取って、ホームバーとの干渉を避ける */
   .reset-btn {
-    margin-top: 30px; padding: 15px 30px; 
-    border: 1px solid #333; border-radius: 30px;
+    margin-top: 50px; /* 上との間隔 */
+    margin-bottom: 80px; /* ★重要：下との間隔を大きく取る */
+    padding: 15px 30px; 
+    background: transparent;
+    border: 1px solid #444; border-radius: 30px;
     color: #666; font-size: 0.9rem; cursor: pointer;
     transition: all 0.2s;
+    font-family: inherit; /* フォント継承 */
   }
   .reset-btn:active {
-    background: #333; color: #fff;
+    background: #333; color: #fff; transform: scale(0.95);
   }
 
   .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
@@ -230,7 +236,7 @@
       ▶ GAME START
     </button>
     
-    <div class="reset-btn" onclick="resetData()">RESET SAVE DATA</div>
+    <button class="reset-btn" onclick="resetData()">RESET SAVE DATA</button>
   </div>
 </div>
 
