@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Manager English v1.0</title>
+<title>Manager English v1.1</title>
 <style>
-  /* === 全体のレイアウト（スマホの高さズレ対策） === */
+  /* === 全体のレイアウト === */
   body {
     background-color: #000;
     color: white;
@@ -14,7 +14,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    /* dvhを使うことでアドレスバーの伸縮に対応 */
     height: 100vh; 
     height: 100dvh; 
     overflow: hidden;
@@ -26,7 +25,6 @@
     width: 100%;
     max-width: 400px;
     height: 100%;
-    /* 縦長スマホ対応 */
     max-height: 100%; 
     background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
     position: relative;
@@ -57,7 +55,7 @@
     padding: 15px 20px;
     display: flex; justify-content: space-between; align-items: center;
     z-index: 10; background: rgba(0,0,0,0.2);
-    min-height: 50px; /* タップしやすく */
+    min-height: 50px; 
   }
   .header-left { display: flex; align-items: center; gap: 15px; }
   .home-btn { font-size: 1.8rem; cursor: pointer; text-shadow: 0 0 5px #fff; transition: transform 0.1s; }
@@ -173,16 +171,18 @@
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
   
-  /* リセットボタン：安全地帯（中央寄り）に配置 */
+  /* リセットボタン（スタイル調整） */
   .reset-btn {
-    margin-top: 30px; /* ボタン同士の間隔 */
-    margin-bottom: 0; /* 下の余白は不要（中央寄せなので） */
+    margin-top: 30px; 
+    margin-bottom: 0;
     padding: 12px 25px; 
     background: transparent;
     border: 1px solid #555; border-radius: 20px;
     color: #888; font-size: 0.85rem; cursor: pointer;
     transition: all 0.2s;
     font-family: inherit;
+    /* タッチ操作を明示 */
+    touch-action: manipulation;
   }
   .reset-btn:active {
     background: #333; color: #fff; transform: scale(0.95);
@@ -239,7 +239,7 @@
       ▶ GAME START
     </button>
     
-    <button class="reset-btn" onclick="resetData()">RESET SAVE DATA</button>
+    <button class="reset-btn" onclick="tryReset(this)" ontouchstart="">RESET SAVE DATA</button>
   </div>
 </div>
 
@@ -347,6 +347,9 @@
   let timerInterval = null;
   let timeLeft = 100;
   let combo = 0;
+  
+  // ★リセット用ステート
+  let resetStep = 0; // 0:通常, 1:確認中
 
   // ==========================================
   //  3. ゲーム開始フロー
@@ -388,6 +391,15 @@
     document.getElementById('comboContainer').style.opacity = "0";
     document.getElementById('expOverlay').classList.remove('show');
     document.getElementById('startScreen').style.display = 'flex';
+    
+    // リセットボタンの状態を戻す
+    resetStep = 0;
+    const rBtn = document.querySelector('.reset-btn');
+    if(rBtn) {
+      rBtn.innerText = "RESET SAVE DATA";
+      rBtn.style.borderColor = "#555";
+      rBtn.style.color = "#888";
+    }
   }
 
   function playBGM() {
@@ -687,8 +699,29 @@
     else { b.muted = true; btn.innerText = "🔇"; }
   }
 
-  function resetData() {
-    if(confirm("データをリセットしますか？")) { localStorage.removeItem('myDevValue'); location.reload(); }
+  // ★修正: 2回タップでリセットする独自関数
+  function tryReset(btn) {
+    if (resetStep === 0) {
+      // 1回目のタップ：警告モードへ
+      btn.innerText = "REALLY? (Tap Again)";
+      btn.style.borderColor = "red";
+      btn.style.color = "red";
+      resetStep = 1;
+      
+      // 3秒経ったら元に戻す
+      setTimeout(() => {
+        if(resetStep === 1) { // まだリセットされてなければ戻す
+           btn.innerText = "RESET SAVE DATA";
+           btn.style.borderColor = "#555";
+           btn.style.color = "#888";
+           resetStep = 0;
+        }
+      }, 3000);
+    } else {
+      // 2回目のタップ：実行
+      localStorage.removeItem('myDevValue');
+      location.reload();
+    }
   }
 </script>
 </body>
