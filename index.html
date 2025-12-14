@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manager English v0.7</title>
+<title>Manager English v0.8</title>
 <style>
   /* === 全体のレイアウト === */
   body {
@@ -167,6 +167,17 @@
     background: linear-gradient(to right, #00f2ea, #ff0055);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
+  
+  /* リセットボタンのスタイル強化（スマホ対応） */
+  .reset-btn {
+    margin-top: 30px; padding: 15px 30px; 
+    border: 1px solid #333; border-radius: 30px;
+    color: #666; font-size: 0.9rem; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-btn:active {
+    background: #333; color: #fff;
+  }
 
   .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
   @keyframes shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(2px); } }
@@ -219,7 +230,7 @@
       ▶ GAME START
     </button>
     
-    <div style="margin-top:40px; font-size:0.8rem; color:#444; cursor:pointer;" onclick="resetData()">RESET SAVE DATA</div>
+    <div class="reset-btn" onclick="resetData()">RESET SAVE DATA</div>
   </div>
 </div>
 
@@ -354,7 +365,6 @@
     updateStats();
   }
 
-  // ★修正: ホームに戻ったらBGMを止める
   function backToTitle() {
     clearInterval(timerInterval);
     if(scrollInterval) clearInterval(scrollInterval);
@@ -394,14 +404,14 @@
 
     let q;
     let titleText = "";
-    let badgeText = ""; // 診断時のバッジ表示用
+    let badgeText = ""; 
     let contentHtml = "";
 
     if (currentMode === 'diagnosis') {
       if (currentQ >= diagnosisQuestions.length) { finishDiagnosis(); return; }
       q = diagnosisQuestions[currentQ];
       titleText = q.difficulty_label;
-      badgeText = "LEVEL CHECK"; // ★バッジ名も変更
+      badgeText = "LEVEL CHECK"; 
       contentHtml = `
         <div class="question-box">${q.question.replace(/\n/g, '<br>')}</div>
         <div class="btn-group">
@@ -657,7 +667,7 @@
     if(diagnosisScore>=1) d=35; if(diagnosisScore>=3) d=45; if(diagnosisScore>=5) d=55; if(diagnosisScore==6) d=60;
     devValue = d; localStorage.setItem('myDevValue', devValue);
     alert(`診断終了！偏差値${devValue}からスタート！`);
-    backToTitle(); // ★修正: 診断が終わったらタイトル画面に戻す
+    backToTitle(); 
     updateStats();
   }
 
