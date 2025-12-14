@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manager English v0.5</title>
+<title>Manager English v0.6</title>
 <style>
   /* === 全体のレイアウト === */
   body {
@@ -32,7 +32,7 @@
     overflow: hidden;
   }
 
-  /* === FEVER演出用 === */
+  /* === FEVER演出 === */
   #feverEffect {
     position: absolute; top:0; left:0; width:100%; height:100%;
     background: linear-gradient(45deg, rgba(255,0,150,0.1), rgba(0,242,234,0.1));
@@ -48,14 +48,18 @@
     box-shadow: 0 0 10px #00f2ea;
   }
 
-  /* === ヘッダー === */
+  /* === ヘッダー（戻るボタン追加） === */
   .header {
-    padding: 20px;
+    padding: 15px 20px;
     display: flex; justify-content: space-between; align-items: center;
-    z-index: 10;
+    z-index: 10; background: rgba(0,0,0,0.2);
   }
+  .header-left { display: flex; align-items: center; gap: 15px; }
+  .home-btn { font-size: 1.5rem; cursor: pointer; text-shadow: 0 0 5px #fff; transition: transform 0.1s; }
+  .home-btn:active { transform: scale(0.8); }
+  
   .level-box {
-    font-weight: 900; font-size: 1.4rem; color: #fff; text-shadow: 0 0 10px #00f2ea;
+    font-weight: 900; font-size: 1.2rem; color: #fff; text-shadow: 0 0 10px #00f2ea;
     font-style: italic;
   }
 
@@ -85,9 +89,6 @@
     font-size: 3rem; font-weight: 800; margin: 0 0 5px 0; text-align: center;
     text-shadow: 0 4px 10px rgba(0,0,0,0.5);
   }
-  .phonetic {
-    color: #888; font-family: monospace; margin-bottom: 20px; text-align: center;
-  }
   .question-box {
     font-size: 1.2rem; font-weight: 500; line-height: 1.5; text-align: center;
     margin-bottom: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
@@ -108,7 +109,7 @@
 
   /* === 長文スクロール === */
   #scrollBox {
-    width: 100%; height: 400px; overflow-y: hidden; position: relative;
+    width: 100%; height: 350px; overflow-y: hidden; position: relative;
     mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
     background: rgba(0,0,0,0.3); border-radius: 10px;
   }
@@ -117,7 +118,7 @@
 
   /* === 解説オーバーレイ === */
   #expOverlay {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 70%;
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 75%;
     background: rgba(10,10,15,0.98);
     border-top: 3px solid #00f2ea;
     border-radius: 25px 25px 0 0;
@@ -130,6 +131,13 @@
   
   #expContent { flex: 1; overflow-y: auto; }
   
+  /* 解説内：問題文の振り返り用エリア */
+  .exp-question-ref {
+    font-size: 0.95rem; color: #888; background: rgba(255,255,255,0.05);
+    padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 2px solid #555;
+    font-style: italic;
+  }
+
   .exp-result { font-size: 2rem; font-weight: 900; margin-bottom: 10px; text-align: center; letter-spacing: 2px; }
   .exp-meaning { 
     font-size: 1.1rem; color: #fff; background: rgba(255,255,255,0.1); 
@@ -163,7 +171,7 @@
 
   .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
   @keyframes shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(2px); } }
-
+  
   .mode-badge {
     position: absolute; top: 20px; right: 20px; 
     background: #222; color: #aaa; padding: 5px 10px; 
@@ -187,7 +195,10 @@
   <div id="timerContainer"><div id="timerBar"></div></div>
 
   <div class="header">
-    <div class="level-box" id="devVal">Lv.50.0</div>
+    <div class="header-left">
+      <div class="home-btn" onclick="backToTitle()">🏠</div>
+      <div class="level-box" id="devVal">Lv.50.0</div>
+    </div>
     <div style="font-size:1.5rem; cursor:pointer;" onclick="toggleMute()" id="muteBtn">🔊</div>
   </div>
 
@@ -215,7 +226,7 @@
 
 <script>
   // ==========================================
-  //  1. データ定義 (※診断は正解・不正解でメッセージを分ける)
+  //  1. データ定義
   // ==========================================
   const diagnosisQuestions = [
     { 
@@ -223,7 +234,6 @@
       question: "部活の先輩は、放課後いつもサッカーを練習します。\nThe senior [     ] soccer after school every day.", 
       options: ["play", "plays", "playing", "played"], correct: 1, 
       meaning: "先輩は放課後サッカーをする。", 
-      // ★修正: 正解時と不正解時のメッセージを分離
       msg_correct: "まあ、これくらいは常識だよね。😏",
       msg_wrong: "は？ これ間違えたらマジで義務教育やり直し案件だよ？😤",
       grammar_rule: "主語が『The senior（三人称単数）』だから、動詞に『s』がつきます。"
@@ -345,16 +355,32 @@
     updateStats();
   }
 
-  // ★修正: BGMをランダムに
+  // ★HOMEに戻る（追加）
+  function backToTitle() {
+    // タイマーやスクロールを停止
+    clearInterval(timerInterval);
+    if(scrollInterval) clearInterval(scrollInterval);
+    
+    // コンボリセット
+    combo = 0;
+    document.getElementById('feverEffect').style.opacity = "0";
+    document.getElementById('comboContainer').style.opacity = "0";
+    
+    // オーバーレイを閉じる
+    document.getElementById('expOverlay').classList.remove('show');
+    
+    // 画面切り替え
+    document.getElementById('startScreen').style.display = 'flex';
+  }
+
   function playBGM() {
     const bgm = document.getElementById('bgm');
-    const track = Math.floor(Math.random() * 10) + 1; // 1~10のランダム
+    const track = Math.floor(Math.random() * 10) + 1; 
     
-    // まだ再生されていない場合のみセット
     if(bgm.paused) {
       bgm.src = track + ".mp3";
       bgm.volume = 0.3;
-      bgm.muted = false; // ミュート解除
+      bgm.muted = false; 
       bgm.play().catch(e => console.log("Auto-play blocked"));
       document.getElementById('muteBtn').innerText = "🔊";
     }
@@ -431,7 +457,6 @@
     }
   }
 
-  // ★ タイマー
   function startTimer(seconds) {
     const bar = document.getElementById('timerBar');
     timeLeft = 100;
@@ -460,13 +485,20 @@
   }
 
   function timeUp() {
-    combo = 0; // コンボ切れ
-    showOverlay(`<div class="exp-result" style="color:#ff0055;">⏰ TIME UP!</div><div class="exp-body">遅い！判断遅い！</div>`, false);
+    combo = 0; 
+    const q = (currentMode === 'diagnosis') ? diagnosisQuestions[currentQ] : feedQuestions[currentQ];
+    
+    // 時間切れでも問題文を表示する
+    showOverlay(
+      `<div class="exp-result" style="color:#ff0055;">⏰ TIME UP!</div>
+       <div class="exp-question-ref">Q. ${q.question.replace(/\n/g, ' ')}</div>
+       <div class="exp-body">遅い！判断遅い！</div>`, false
+    );
     if(currentMode !== 'diagnosis') { devValue -= 1.0; updateStats(); }
   }
 
   // ==========================================
-  //  5. 判定ロジック（★修正：メッセージ分岐）
+  //  5. 判定ロジック
   // ==========================================
   
   function addCombo() {
@@ -487,7 +519,7 @@
     document.getElementById('comboContainer').style.opacity = "0";
   }
 
-  // ★診断：正解・不正解でメッセージを完全に分ける
+  // 診断
   function checkDiagnosis(selectIndex, btnElement) {
     const q = diagnosisQuestions[currentQ];
     const isCorrect = (selectIndex === q.correct);
@@ -496,6 +528,7 @@
       btnElement.style.background = "#ff0055"; 
       showOverlay(
         `<div class="exp-result" style="color:#00f2ea;">✨ CORRECT!</div>
+         <div class="exp-question-ref">Q. ${q.question.replace(/\n/g, ' ')}</div>
          <div class="exp-meaning">${q.meaning}</div>
          <div class="exp-manager">💡 Manager's:</div>
          <div class="exp-body">${q.msg_correct}</div>
@@ -505,6 +538,7 @@
       btnElement.classList.add('shake'); 
       showOverlay(
         `<div class="exp-result" style="color:#ff0055;">😢 MISS...</div>
+         <div class="exp-question-ref">Q. ${q.question.replace(/\n/g, ' ')}</div>
          <div class="exp-meaning">${q.meaning}</div>
          <div class="exp-manager">💡 Manager's:</div>
          <div class="exp-body">${q.msg_wrong}</div>
@@ -526,6 +560,7 @@
       btnElement.style.background = "#00f2ea"; btnElement.style.color = "#000";
       showOverlay(`
         <div class="exp-result" style="color:#00f2ea;">✨ CORRECT!</div>
+        <div class="exp-question-ref">Q. ${q.question.replace(/\n/g, ' ')}</div>
         <div class="exp-meaning">${q.meaning}</div>
         <div class="exp-manager">💡 Manager's:</div>
         <div class="exp-body">${q.exp}</div>
@@ -536,6 +571,7 @@
       btnElement.classList.add('shake');
       showOverlay(`
         <div class="exp-result" style="color:#ff0055;">😢 MISS...</div>
+        <div class="exp-question-ref">Q. ${q.question.replace(/\n/g, ' ')}</div>
         <div class="exp-meaning">${q.meaning}</div>
         <div class="exp-manager">💡 Manager's:</div>
         <div class="exp-body">${q.exp}</div>
@@ -555,6 +591,7 @@
       btnElement.style.background = userAnswer ? "#00f2ea" : "#ff0055"; btnElement.style.color = "#fff";
       showOverlay(`
         <div class="exp-result" style="color:#00f2ea;">✨ GREAT EYE!</div>
+        <div class="exp-question-ref">Q. ${q.question.replace(/\n/g, ' ')}</div>
         <div class="exp-meaning">${q.meaning}</div>
         <div class="exp-manager">💡 Point:</div>
         <div class="exp-body">${q.explanation}</div>
@@ -565,6 +602,7 @@
       btnElement.classList.add('shake');
       showOverlay(`
         <div class="exp-result" style="color:#ff0055;">😢 OOPS...</div>
+        <div class="exp-question-ref">Q. ${q.question.replace(/\n/g, ' ')}</div>
         <div class="exp-meaning">${q.meaning}</div>
         <div class="exp-manager">💡 Point:</div>
         <div class="exp-body">${q.explanation}</div>
@@ -587,6 +625,7 @@
     const q = feedQuestions[currentQ];
     devValue += 2.0; updateStats();
     
+    // 長文は本文自体が問題なので、あえてQエリアは出さず、あらすじを表示
     showOverlay(`
       <div class="exp-result" style="color:#00f2ea;">📚 COMPLETE!</div>
       <div class="exp-meaning">${q.title}</div>
@@ -637,5 +676,4 @@
   }
 </script>
 </body>
-
 </html>
