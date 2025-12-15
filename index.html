@@ -435,6 +435,9 @@
     bgm.pause();
     bgm.currentTime = 0;
 
+    // 「セットされている曲を忘れて」という指示
+    bgm.src = "";  
+    
     combo = 0;
     document.getElementById('feverEffect').style.opacity = "0";
     document.getElementById('comboContainer').style.opacity = "0";
@@ -772,3 +775,4 @@
 </script>
 </body>
 </html>
+
