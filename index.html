@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Manager English v2.1</title>
+<title>Manager English v2.3</title>
 <style>
   /* === 全体のレイアウト === */
   body {
@@ -420,10 +420,7 @@
 
 
   function prepareAudio() {
-    const bgm = document.getElementById('bgm');
-    const track = Math.floor(Math.random() * 3) + 1;
-    if(bgm.src === "") bgm.src = track + ".mp3";
-    bgm.load(); 
+    // 【修正】この関数は空にしました。すべての処理は playBGM で行います。
   }
 
   function backToTitle() {
@@ -435,9 +432,6 @@
     bgm.pause();
     bgm.currentTime = 0;
 
-    // 「セットされている曲を忘れて」という指示
-    bgm.src = "";  
-    
     combo = 0;
     document.getElementById('feverEffect').style.opacity = "0";
     document.getElementById('comboContainer').style.opacity = "0";
@@ -447,12 +441,24 @@
 
   function playBGM() {
     const bgm = document.getElementById('bgm');
-    if(bgm.paused) {
+    
+    // 1. 毎回ここでランダムに曲を決める
+    const track = Math.floor(Math.random() * 3) + 1;
+    
+    // 2. 曲をセットしてロード開始
+    bgm.src = track + ".mp3";
+    bgm.load();
+    
+    // 3. 【修正】iPhone対策：準備ができたら再生する予約を入れる
+    bgm.oncanplay = function() {
       bgm.volume = 0.3;
-      bgm.muted = false; 
+      bgm.muted = false;
       bgm.play().catch(e => console.log("BGM Play Error:", e));
       document.getElementById('muteBtn').innerText = "🔊";
-    }
+      
+      // 一度再生したら、この予約は解除（ループ防止）
+      bgm.oncanplay = null;
+    };
   }
 
   // ==========================================
@@ -475,8 +481,13 @@
   }
 
   function executeReset() {
-    localStorage.removeItem('myDevValue');
-    location.reload();
+    try {
+      localStorage.removeItem('myDevValue');
+      location.reload();
+    } catch (e) {
+      alert("⚠️ リセット失敗\nブラウザの制限により削除できませんでした。");
+      cancelReset();
+    }
   }
 
   function cancelReset() {
@@ -775,4 +786,3 @@
 </script>
 </body>
 </html>
-
