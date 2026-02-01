@@ -3,483 +3,141 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Manager English v3.1 Fixed</title>
+<title>GAP STUDY AI-Edition</title>
 <style>
-  /* === 全体のレイアウト === */
-  body {
-    background-color: #000;
-    color: white;
-    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    display: flex; justify-content: center; align-items: center;
-    height: 100vh; height: 100dvh; 
-    overflow: hidden; touch-action: none; 
-  }
-
-  /* === スマホ画面枠 === */
-  #appScreen {
-    width: 100%; max-width: 400px; height: 100%;
-    background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
-    position: relative; overflow: hidden;
-    display: flex; flex-direction: column;
-  }
-
-  /* === カードエリア === */
-  #cardContainer {
-    flex: 1; position: relative; width: 100%; height: 100%;
-    overflow: hidden; z-index: 5;
-  }
-
-  .quiz-card {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    padding: 20px; box-sizing: border-box;
-    transition: transform 0.3s ease-out, opacity 0.3s;
-  }
-  
+  /* スタイル（CSS）は元のデザインを維持 */
+  body { background-color: #000; color: white; font-family: sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
+  #appScreen { width: 100%; max-width: 400px; height: 100%; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  #cardContainer { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; z-index: 5; }
+  .quiz-card { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; transition: transform 0.3s ease-out, opacity 0.3s; }
   .card-active { transform: translateY(0); opacity: 1; z-index: 10; }
-  .card-fly-up { transform: translateY(-120%); opacity: 0; z-index: 10; } /* 上へ飛んでいく */
-  .card-standby { transform: translateY(50px); opacity: 0; z-index: 5; } /* 下で待機 */
-
-  /* === FEVER演出 === */
-  #feverEffect {
-    position: absolute; top:0; left:0; width:100%; height:100%;
-    background: linear-gradient(45deg, rgba(255,0,150,0.2), rgba(0,242,234,0.2));
-    opacity: 0; pointer-events: none; z-index: 1; transition: opacity 0.3s;
-    mix-blend-mode: screen;
-  }
-
-  /* === タイムバー === */
-  #timerContainer {
-    width: 100%; height: 6px; background: rgba(255,255,255,0.1); 
-    position: absolute; top: 0; left: 0; z-index: 100;
-  }
-  #timerBar {
-    width: 0%; height: 100%; background: #00f2ea; 
-    box-shadow: 0 0 10px #00f2ea; transition: width 0.1s linear;
-  }
-
-  /* === ヘッダー === */
-  .header {
-    position: absolute; top: 0; left: 0; width: 100%;
-    padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
-    z-index: 50; box-sizing: border-box;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-  }
-  .home-btn { font-size: 1.5rem; cursor: pointer; filter: drop-shadow(0 0 5px #fff); }
-  .level-box { font-weight: 900; font-size: 1rem; color: #fff; text-shadow: 0 0 10px #00f2ea; font-style: italic; }
-
-  /* === コンボ表示 === */
-  #comboContainer {
-    position: absolute; top: 15%; width: 100%; text-align: center;
-    pointer-events: none; z-index: 20;
-    opacity: 0; transform: scale(0.5);
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  #comboNum { font-size: 4rem; font-weight: 900; color: #ff0055; text-shadow: 2px 2px 0 #fff, 0 0 20px #ff0055; }
-  #comboLabel { font-size: 1.2rem; font-weight: bold; color: #fff; letter-spacing: 5px; }
-
-  /* === クイズパーツ === */
-  .word-title {
-    font-size: 2.8rem; font-weight: 800; margin: 0 0 15px 0; text-align: center;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.5); letter-spacing: -1px;
-  }
-  .question-box {
-    font-size: 1.2rem; font-weight: 500; line-height: 1.6; text-align: center;
-    margin-bottom: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    background: rgba(0,0,0,0.6); padding: 20px; border-radius: 15px;
-    backdrop-filter: blur(4px); width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-  }
-
-  .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 320px; }
-  .btn {
-    background: rgba(255,255,255,0.1); 
-    border: 1px solid rgba(255,255,255,0.2); 
-    color: white;
-    padding: 16px; border-radius: 50px; 
-    font-size: 1.0rem; font-weight: bold;
-    cursor: pointer; transition: transform 0.1s, background 0.2s;
-    text-align: center; position: relative; overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  }
-  .btn:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
-  .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-  @keyframes shake { 10%, 90% { transform: translateX(-4px); } 20%, 80% { transform: translateX(4px); } }
-
-  /* === 解説オーバーレイ（修正版） === */
-  #expOverlay {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: auto; max-height: 80%;
-    background: rgba(15,15,20,0.98); /* 少し濃くした */
-    border-top: 3px solid #00f2ea;
-    border-radius: 25px 25px 0 0;
-    transform: translateY(110%);
-    transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
-    display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; 
-    z-index: 500; /* 最前面に */
-    box-shadow: 0 -10px 50px rgba(0,0,0,0.9);
-  }
+  .card-fly-up { transform: translateY(-120%); opacity: 0; z-index: 10; }
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: auto; max-height: 80%; background: rgba(15,15,20,0.98); border-top: 3px solid #00f2ea; border-radius: 25px 25px 0 0; transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1); padding: 25px; box-sizing: border-box; z-index: 500; }
   #expOverlay.show { transform: translateY(0); }
-  
-  .exp-result { font-size: 2.2rem; font-weight: 900; margin-bottom: 15px; text-align: center; letter-spacing: 2px; }
-  .exp-content-body { flex: 1; overflow-y: auto; margin-bottom: 20px; }
-  
-  /* 復活させたリッチなデザイン */
-  .exp-meaning { font-size: 1.2rem; font-weight: bold; color: #fff; margin-bottom: 15px; text-align: center; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;}
-  .exp-label { font-size: 0.85rem; color: #888; font-weight: bold; margin-top: 10px; margin-bottom: 3px; }
-  .exp-text { font-size: 1rem; line-height: 1.6; color: #ddd; margin-bottom: 10px; }
-  .exp-rule { font-size: 0.95rem; color: #00f2ea; border: 1px dashed #00f2ea; padding: 10px; border-radius: 8px; background: rgba(0, 242, 234, 0.05); margin-top:10px;}
-
-  /* 復活させたNEXTボタン */
-  .next-btn {
-    width: 100%; padding: 15px; 
-    background: #00f2ea; color: #000; font-weight: 900; 
-    text-align: center; border-radius: 50px; cursor: pointer;
-    box-shadow: 0 0 15px rgba(0,242,234,0.5); font-size: 1.1rem;
-    margin-bottom: 10px;
-  }
-  .swipe-hint {
-    text-align: center; color: #666; font-size: 0.8rem;
-  }
-
-  /* === スタート画面 === */
-  #startScreen {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-    background: #000; z-index: 1000;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-  }
-  .title-logo {
-    font-size: 3.5rem; font-weight: 900; color: #fff; font-style: italic;
-    letter-spacing: -2px; margin-bottom: 5px;
-    background: linear-gradient(to right, #00f2ea, #ff0055);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .reset-btn {
-    margin-top: 30px; padding: 10px 20px; 
-    background: transparent; border: 1px solid #444; border-radius: 20px;
-    color: #666; font-size: 0.8rem;
-  }
-
+  .next-btn { width: 100%; padding: 15px; background: #00f2ea; color: #000; font-weight: 900; text-align: center; border-radius: 50px; cursor: pointer; margin-top: 10px; }
+  .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 320px; }
+  .btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 16px; border-radius: 50px; font-size: 1.0rem; font-weight: bold; cursor: pointer; }
+  .question-box { font-size: 1.2rem; text-align: center; margin-bottom: 30px; background: rgba(0,0,0,0.6); padding: 20px; border-radius: 15px; width: 90%; }
+  .header { position: absolute; top: 0; left: 0; width: 100%; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
+  #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 </style>
 </head>
 <body>
 
-<audio id="bgm" loop></audio>
-
 <div id="appScreen">
-  <div id="feverEffect"></div>
-
-  <div id="comboContainer">
-    <div id="comboNum">3</div>
-    <div id="comboLabel">COMBO!</div>
-  </div>
-
-  <div id="timerContainer"><div id="timerBar"></div></div>
-
   <div class="header">
-    <div style="display:flex; align-items:center; gap:10px;">
-      <div class="home-btn" onclick="backToTitle()">🏠</div>
-      <div class="level-box" id="devVal">Lv.50.0</div>
-    </div>
-    <div style="font-size:1.5rem; cursor:pointer;" onclick="toggleMute()" id="muteBtn">🔊</div>
+    <div class="level-box" id="devVal">Lv.50.0</div>
   </div>
 
   <div id="cardContainer"></div>
 
   <div id="expOverlay">
-    <div id="expResult" class="exp-result"></div>
-    
-    <div id="expContent" class="exp-content-body"></div>
-    
+    <div id="expResult" style="font-size: 2rem; font-weight: 900; text-align: center; margin-bottom: 10px;"></div>
+    <div id="expContent" style="color: #ddd; line-height: 1.6; margin-bottom: 20px;"></div>
     <div class="next-btn" onclick="nextQuestionAnimation()">NEXT ▶</div>
-    <div class="swipe-hint">or Swipe UP ⬆</div>
   </div>
 
   <div id="startScreen">
-    <div class="title-logo">GAP<br>STUDY</div>
-    <div style="color:#666; font-size:0.9rem; margin-bottom:40px; letter-spacing:2px;">TIKTOK STYLE ENGLISH</div>
-    
-    <button class="btn" onclick="startDiagnosis()" style="background:linear-gradient(45deg, #ff0055, #ff5e00); width:80%; margin-bottom:20px; border:none; box-shadow:0 0 15px rgba(255,0,85,0.4);">
-      🔥 LEVEL CHECK
-    </button>
-    <button class="btn" onclick="startGame()" style="background:linear-gradient(45deg, #00f2ea, #0080ff); width:80%; border:none; box-shadow:0 0 15px rgba(0,242,234,0.4);">
-      ▶ GAME START
-    </button>
-    <button class="reset-btn" onclick="confirmReset()">RESET DATA</button>
+    <h1 style="color: #00f2ea; font-style: italic; font-size: 3rem;">GAP STUDY</h1>
+    <button class="btn" onclick="startGame()" style="width: 80%; background: #00f2ea; color: #000;">▶ GAME START</button>
   </div>
 </div>
 
 <script>
-  // ==========================================
-  //  データ定義（v2.4の完全版データを復活）
-  // ==========================================
-  const diagnosisQuestions = [
-    { 
-      level: 1, difficulty_label: "Lv.40", 
-      question: "部活の先輩は、放課後いつもサッカーを練習します。\nThe senior [     ] soccer after school every day.", 
-      options: ["play", "plays", "playing", "played"], correct: 1, 
-      meaning: "先輩は放課後サッカーをする。", 
-      msg_correct: "まあ、これくらいは常識だよね。😏",
-      msg_wrong: "は？ これ間違えたらマジで義務教育やり直し案件だよ？😤",
-      grammar_rule: "主語が『The senior（三人称単数）』だから、動詞に『s』がつきます。"
-    },
-    { 
-      level: 1, difficulty_label: "Lv.40", 
-      question: "次の試合は日曜日の朝9時に始まります。\nThe next game starts [     ] 9:00 a.m. on Sunday.", 
-      options: ["on", "in", "at", "to"], correct: 2, 
-      meaning: "次の試合は9時に始まる。", 
-      msg_correct: "よし、OK。遅刻は許さないからね。",
-      msg_wrong: "適当に選んだでしょ？ 時間の一点は at しかないの。",
-      grammar_rule: "9:00という『点』を指すときは at を使います。"
-    },
-    { 
-      level: 2, difficulty_label: "Lv.50", 
-      question: "顧問の先生は、部員たちが練習中にお喋りするのをやめさせた。\nThe coach told the members to stop [     ] during practice.", 
-      options: ["talk", "to talk", "talking", "talked"], correct: 2, 
-      meaning: "話すのをやめる。", 
-      msg_correct: "正解。練習中は無駄口たたかない。基本でしょ？",
-      msg_wrong: "『喋るために立ち止まる（stop to）』わけないじゃん。文脈読んで。",
-      grammar_rule: "stop ~ing は「～することをやめる」。stop to ~ は「～するために止まる」。"
-    }
-  ];
+  // === Dify API 連携設定 ===
+  const DIFY_API_KEY = 'app-1c154Pr8siE4DWIFs2a4mt9C'; 
+  const DIFY_API_URL = 'http://localhost/v1/workflows/run';
 
-  const vocabQuestions = [
-    { type: "vocab", word: "Postpone", question: "「延期する」。今の私に一番必要な言葉。", options: ["Cancel", "Postpone", "Stop", "Repeat"], correct: 1, meaning: "延期する、後回しにする", exp: "【OFF💤】むり…。動けない…。お風呂入らなきゃだけど、限界だから postpone（延期）させて…。『post（後ろに）』『pone（置く）』って意味。今の入浴 postpone は生存戦略だから…zzz。" },
-    { type: "vocab", word: "Consensus", question: "「合意」。みんながいいよって言うこと。", options: ["Compromise", "Consensus", "Contract", "Contact"], correct: 1, meaning: "合意、意見の一致", exp: "【OFF🍷】飲み会の店決めで1時間LINEしてるの何？ 『con（共に）』『sensus（感じる）』。もうサイゼでよくない？ 誰か早く consensus 取ってきて…お腹すいて死ぬ。" },
-    { type: "vocab", word: "Agenda", question: "「議題」。これがない会議は地獄。", options: ["Minutes", "Agenda", "Schedule", "Topic"], correct: 1, meaning: "議題、予定表", exp: "【OFF🎮】休日のデートに Agenda 持ってくる彼氏は無理。仕事中は大事だけど、日曜の朝くらいノープランで寝かせてよ…。" }
-  ];
-
-  // 変数
+  let devValue = 50.0;
   let currentQuestions = [];
   let currentIndex = 0;
-  let devValue = parseFloat(localStorage.getItem('myDevValue')) || 50.0;
-  let combo = 0;
-  let isAnswering = false; 
+  let isAnswering = false;
+  let nextQueuingData = null;
 
-  // スワイプ判定用
-  let touchStartY = 0;
-  let touchEndY = 0;
-
-  // ==========================================
-  //  起動・初期化
-  // ==========================================
-  function playBGM() {
-    const bgm = document.getElementById('bgm');
-    const track = Math.floor(Math.random() * 3) + 1;
-    bgm.src = track + ".mp3";
-    bgm.load();
-    bgm.oncanplay = function() {
-      bgm.volume = 0.3; bgm.muted = false;
-      bgm.play().catch(e=>console.log(e));
-      bgm.oncanplay = null;
-      document.getElementById('muteBtn').innerText = "🔊";
-    };
+  // Difyから問題を生成
+  async function fetchQuestionFromDify() {
+    try {
+      const response = await fetch(DIFY_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DIFY_API_KEY}`
+        },
+        body: JSON.stringify({
+          inputs: { current_lv: devValue, target_school: "早慶", user_status: "部活後のバスの中" },
+          response_mode: "blocking",
+          user: "daughter_user"
+        })
+      });
+      const result = await response.json();
+      return JSON.parse(result.data.outputs.answer);
+    } catch (e) {
+      alert("AIとの通信に失敗しました。Dify(localhost)が動いているか確認してください。");
+      return null;
+    }
   }
 
-  function startDiagnosis() {
-    setupGame(diagnosisQuestions, 'diagnosis');
-  }
-
-  function startGame() {
-    let q = [...vocabQuestions, ...vocabQuestions]; 
-    q.sort(() => Math.random() - 0.5);
-    setupGame(q, 'normal');
-  }
-
-  function setupGame(list, mode) {
+  async function startGame() {
     document.getElementById('startScreen').style.display = 'none';
-    playBGM();
-    currentQuestions = list;
-    currentIndex = 0;
-    combo = 0;
-    createCard(currentIndex); 
-    updateStats();
+    const firstQ = await fetchQuestionFromDify();
+    if(firstQ) {
+      currentQuestions = [firstQ];
+      createCard(0);
+      prepareNextQuestion();
+    }
   }
 
-  function backToTitle() {
-    document.getElementById('bgm').pause();
-    document.getElementById('startScreen').style.display = 'flex';
-    document.getElementById('cardContainer').innerHTML = ""; 
-    document.getElementById('expOverlay').classList.remove('show');
+  async function prepareNextQuestion() {
+    nextQueuingData = await fetchQuestionFromDify();
   }
 
-  // ==========================================
-  //  カード生成
-  // ==========================================
   function createCard(index) {
     const container = document.getElementById('cardContainer');
-    container.innerHTML = ""; 
-
-    if(index >= currentQuestions.length) {
-      alert("All Questions Done! Refreshing...");
-      backToTitle(); return;
-    }
-
+    container.innerHTML = "";
     const q = currentQuestions[index];
     const card = document.createElement('div');
-    card.className = "quiz-card card-active"; 
+    card.className = "quiz-card card-active";
     
-    let html = "";
-    if(q.type === "vocab") {
-       html += `<h2 class="word-title">${q.word}</h2>`;
-    } else {
-       html += `<div style="height:30px;"></div>`;
-    }
-    
-    html += `<div class="question-box">${q.question.replace(/\n/g, '<br>')}</div>`;
-    html += `<div class="btn-group">`;
+    let html = `<div class="question-box">${q.question}</div><div class="btn-group">`;
     q.options.forEach((opt, i) => {
-      html += `<button class="btn" onclick="checkAnswer(${i}, this)">${opt}</button>`;
+      html += `<button class="btn" onclick="checkAnswer('${opt}', '${q.answer}', this)">${opt}</button>`;
     });
     html += `</div>`;
-
     card.innerHTML = html;
     container.appendChild(card);
-    
-    // 解説を隠す
-    document.getElementById('expOverlay').classList.remove('show');
     isAnswering = false;
   }
 
-  // ==========================================
-  //  スワイプ制御（どこでも対応版）
-  // ==========================================
-  const appScreen = document.getElementById('appScreen');
-  
-  appScreen.addEventListener('touchstart', e => { 
-    touchStartY = e.changedTouches[0].screenY; 
-  }, {passive: false}); // passive:falseでスクロール制御できるようにする
-
-  appScreen.addEventListener('touchend', e => {
-    touchEndY = e.changedTouches[0].screenY;
-    handleSwipe();
-  }, {passive: false});
-
-  function handleSwipe() {
-    // 解説が表示されている時だけスワイプで「次へ」を実行する
+  function checkAnswer(selected, correct, btn) {
+    if(isAnswering) return;
+    isAnswering = true;
+    const isCorrect = (selected === correct);
     const overlay = document.getElementById('expOverlay');
-    if (!overlay.classList.contains('show')) return;
-
-    const distance = touchStartY - touchEndY;
-    // 上に50px以上スワイプしたら次へ
-    if (distance > 50) {
-      nextQuestionAnimation();
-    }
+    
+    btn.style.background = isCorrect ? "#00f2ea" : "#ff0055";
+    document.getElementById('expResult').innerText = isCorrect ? "✨ CORRECT!" : "😢 MISS...";
+    document.getElementById('expContent').innerText = currentQuestions[currentIndex].commentary;
+    
+    if(isCorrect) devValue += 0.5;
+    document.getElementById('devVal').innerText = "Lv." + devValue.toFixed(1);
+    
+    setTimeout(() => { overlay.classList.add('show'); }, 300);
   }
 
   function nextQuestionAnimation() {
-    const overlay = document.getElementById('expOverlay');
+    document.getElementById('expOverlay').classList.remove('show');
     const currentCard = document.querySelector('.card-active');
-    
-    // 1. 解説を隠す
-    overlay.classList.remove('show');
+    currentCard.classList.add('card-fly-up');
 
-    if(currentCard) {
-      // 2. カードを上に飛ばす
-      currentCard.classList.remove('card-active');
-      currentCard.classList.add('card-fly-up');
-    }
-
-    // 3. 次のカードへ
     setTimeout(() => {
-      currentIndex++;
-      createCard(currentIndex); 
-    }, 300);
-  }
-
-  // ==========================================
-  //  判定ロジック（リッチ解説版）
-  // ==========================================
-  function checkAnswer(selectIndex, btn) {
-    if(isAnswering) return; 
-    isAnswering = true;
-
-    const q = currentQuestions[currentIndex];
-    const isCorrect = (selectIndex === q.correct);
-    
-    const overlay = document.getElementById('expOverlay');
-    const resDiv = document.getElementById('expResult');
-    const contentDiv = document.getElementById('expContent');
-
-    let contentHtml = "";
-
-    if(isCorrect) {
-      combo++;
-      if(combo >= 2) showCombo(combo);
-      devValue += 0.5;
-      
-      btn.style.background = "#00f2ea"; btn.style.color = "#000";
-      resDiv.innerHTML = "✨ CORRECT!"; resDiv.style.color = "#00f2ea";
-      
-      // リッチ解説の生成
-      contentHtml += `<div class="exp-meaning">${q.meaning}</div>`;
-      contentHtml += `<div class="exp-label">💡 Manager's Comment:</div>`;
-      // VocabかDiagnosisかでキーが違うので対応
-      const msg = q.msg_correct ? q.msg_correct : q.exp; 
-      contentHtml += `<div class="exp-text">${msg}</div>`;
-      
-      if(q.grammar_rule) {
-        contentHtml += `<div class="exp-rule">📝 Rule:<br>${q.grammar_rule}</div>`;
+      if (nextQueuingData) {
+        currentQuestions.push(nextQueuingData);
+        currentIndex++;
+        createCard(currentIndex);
+        nextQueuingData = null;
+        prepareNextQuestion();
       }
-
-    } else {
-      combo = 0; hideCombo();
-      devValue -= 0.5;
-      
-      btn.classList.add('shake'); btn.style.background = "#ff0055";
-      resDiv.innerHTML = "😢 MISS..."; resDiv.style.color = "#ff0055";
-      
-      contentHtml += `<div class="exp-meaning">${q.meaning}</div>`;
-      contentHtml += `<div class="exp-label">💡 Manager's Comment:</div>`;
-      // 間違いコメントがあれば表示、なければ正解コメント(exp)を表示
-      const msg = q.msg_wrong ? q.msg_wrong : q.exp;
-      contentHtml += `<div class="exp-text">${msg}</div>`;
-      
-      if(q.grammar_rule) {
-        contentHtml += `<div class="exp-rule">📝 Rule:<br>${q.grammar_rule}</div>`;
-      }
-    }
-    
-    contentDiv.innerHTML = contentHtml;
-    updateStats();
-    
-    // 解説を表示
-    setTimeout(() => {
-      overlay.classList.add('show');
     }, 300);
-  }
-
-  // ==========================================
-  //  演出・ユーティリティ
-  // ==========================================
-  function showCombo(n) {
-    const cBox = document.getElementById('comboContainer');
-    document.getElementById('comboNum').innerText = n;
-    cBox.style.opacity = "1"; cBox.style.transform = "scale(1.2)";
-    setTimeout(()=>cBox.style.transform="scale(1)", 100);
-    if(n>=5) document.getElementById('feverEffect').style.opacity = "1";
-  }
-  function hideCombo() {
-    document.getElementById('comboContainer').style.opacity = "0";
-    document.getElementById('feverEffect').style.opacity = "0";
-  }
-
-  function updateStats() {
-    if(devValue > 80) devValue = 80; if(devValue < 30) devValue = 30;
-    localStorage.setItem('myDevValue', devValue);
-    document.getElementById('devVal').innerText = "Lv." + devValue.toFixed(1);
-    document.getElementById('devVal').style.color = (devValue >= 60) ? "#ff0055" : "#00f2ea";
-  }
-
-  function toggleMute() {
-    const b = document.getElementById('bgm');
-    b.muted = !b.muted;
-    document.getElementById('muteBtn').innerText = b.muted ? "🔇" : "🔊";
-  }
-  
-  function confirmReset() {
-    if(confirm("データをリセットしますか？")) {
-      localStorage.clear(); location.reload();
-    }
   }
 </script>
 </body>
