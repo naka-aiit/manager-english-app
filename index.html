@@ -3,76 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GAP STUDY - Soccer Manager v1.0</title>
+<title>GAP STUDY - Professional Gemini Edition</title>
 <style>
-  :root { --neon: #00f2ea; --berry: #ff0055; --bg: #000; }
-  body { background-color: var(--bg); color: white; font-family: "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+  :root { --neon: #00f2ea; --berry: #ff0055; --gold: #ffd700; --bg: #050505; }
   
-  #appScreen { 
-    width: 100%; max-width: 400px; height: 100%; max-height: 850px; 
-    background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); 
-    position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; 
-  }
+  body { background-color: var(--bg); color: white; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+  
+  #appScreen { width: 100%; max-width: 420px; height: 100%; max-height: 880px; background: radial-gradient(circle at center, #101025 0%, #000 100%); position: relative; border: 1px solid #222; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,1); }
 
-  /* フィーバー演出 */
-  #feverEffect { 
-    position: absolute; top:0; left:0; width:100%; height:100%; 
-    background: linear-gradient(45deg, rgba(255,0,150,0.1), rgba(0,242,234,0.1)); 
-    opacity: 0; pointer-events: none; z-index: 1; transition: opacity 0.3s; 
-  }
+  /* 演出系 */
+  #feverEffect { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle, rgba(0,242,234,0.15) 0%, transparent 70%); opacity: 0; pointer-events: none; z-index: 1; transition: opacity 0.4s; }
+  #timerContainer { width: 100%; height: 5px; background: rgba(255,255,255,0.1); position: absolute; top: 0; left: 0; z-index: 1000; }
+  #timerBar { width: 100%; height: 100%; background: linear-gradient(to right, var(--neon), #0080ff); box-shadow: 0 0 15px var(--neon); transition: width 0.1s linear; }
 
-  #timerContainer { width: 100%; height: 6px; background: #222; position: absolute; top: 0; left: 0; z-index: 100; }
-  #timerBar { width: 100%; height: 100%; background: var(--neon); transition: width 0.1s linear; box-shadow: 0 0 10px var(--neon); }
+  .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+  .level-box { font-weight: 900; font-size: 1.5rem; color: #fff; text-shadow: 0 0 15px var(--neon); font-style: italic; letter-spacing: 1px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } }
 
-  .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-  .level-box { font-weight: 900; font-size: 1.4rem; color: #fff; text-shadow: 0 0 10px var(--neon); font-style: italic; }
+  /* クイズコンテンツ */
+  #quizArea { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; position: relative; z-index: 10; }
+  .quiz-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 30px; width: 100%; box-sizing: border-box; backdrop-filter: blur(10px); }
+  .word-title { font-size: 2.8rem; font-weight: 900; color: var(--neon); margin: 0 0 15px; text-align: center; font-style: italic; }
+  .question-text { font-size: 1.25rem; line-height: 1.6; text-align: center; margin-bottom: 30px; font-weight: 500; color: #eee; }
 
-  /* コンボ表示 */
-  #comboContainer { 
-    position: absolute; top: 120px; width: 100%; text-align: center; pointer-events: none; z-index: 5; 
-    opacity: 0; transform: scale(0.5); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-  }
-  #comboNum { font-size: 4.5rem; font-weight: 900; color: var(--berry); text-shadow: 2px 2px 0 #fff, 0 0 20px var(--berry); }
-  #comboLabel { font-size: 1.2rem; font-weight: bold; color: #fff; letter-spacing: 5px; }
+  /* ボタン群 */
+  .btn-list { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+  .choice-btn { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 20px; border-radius: 18px; font-size: 1.15rem; font-weight: bold; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: center; }
+  .choice-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--neon); }
+  .choice-btn:active { transform: scale(0.97); background: var(--neon); color: #000; }
 
-  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; position: relative; z-index: 10; }
-  .word-title { font-size: 3rem; font-weight: 900; color: var(--neon); margin: 0 0 10px; }
-  .question-box { font-size: 1.2rem; line-height: 1.6; text-align: center; margin-bottom: 35px; min-height: 80px; }
+  /* 解説オーバーレイ */
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 80%; background: rgba(5,5,10,0.98); border-top: 4px solid var(--neon); transform: translateY(110%); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1); display: flex; flex-direction: column; padding: 35px; box-sizing: border-box; z-index: 2000; border-radius: 40px 40px 0 0; box-shadow: 0 -20px 40px rgba(0,0,0,0.5); }
+  #expOverlay.active { transform: translateY(0); }
+  .result-header { font-size: 3rem; font-weight: 950; text-align: center; margin-bottom: 20px; font-style: italic; }
+  .answer-box { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 15px; margin-bottom: 25px; border-left: 5px solid var(--neon); }
+  .advice-title { color: var(--neon); font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; text-transform: uppercase; }
+  .advice-text { color: #ccc; line-height: 1.8; font-size: 1.05rem; }
 
-  .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; }
-  .btn { 
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); 
-    color: white; padding: 20px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; 
-    cursor: pointer; transition: 0.2s; text-align: center; 
-  }
-  .btn:active { transform: scale(0.96); background: rgba(0,242,234,0.15); border-color: var(--neon); }
+  .next-btn { margin-top: auto; background: linear-gradient(45deg, var(--neon), #0080ff); color: #000; font-weight: 900; text-align: center; padding: 22px; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 20px rgba(0,242,234,0.3); font-size: 1.3rem; transition: 0.3s; }
+  .next-btn:active { transform: translateY(4px); box-shadow: none; }
 
-  #expOverlay { 
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 78%; 
-    background: rgba(10,10,20,0.98); border-top: 3px solid var(--neon); 
-    transform: translateY(110%); transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); 
-    display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; z-index: 200; 
-    border-radius: 35px 35px 0 0; 
-  }
-  #expOverlay.show { transform: translateY(0); }
-  #expContent { flex: 1; overflow-y: auto; text-align: left; }
-  .exp-result { font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; text-align: center; }
-  .exp-meaning { font-size: 1.2rem; color: #fff; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 25px; font-weight: bold; text-align: center; }
-  .exp-body { color: #ddd; font-size: 1.05rem; line-height: 1.7; }
-
-  .next-btn { 
-    margin-top: 20px; background: var(--neon); color: #000; font-weight: 900; 
-    text-align: center; padding: 20px; border-radius: 50px; cursor: pointer; 
-    box-shadow: 0 0 20px var(--neon); font-size: 1.2rem; 
-  }
-
-  #startScreen { 
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; 
-    z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; 
-  }
-  .title-logo { font-size: 4rem; font-weight: 900; font-style: italic; color: var(--neon); margin: 0; line-height: 1; }
-  .loading { margin-top: 20px; color: var(--neon); font-weight: bold; animation: blink 1s infinite; }
-  @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+  /* スタート画面 */
+  #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .logo-main { font-size: 4.5rem; font-weight: 950; font-style: italic; line-height: 0.9; background: linear-gradient(to bottom, #fff, var(--neon)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
+  .logo-sub { color: #555; letter-spacing: 8px; font-size: 0.9rem; margin: 15px 0 60px; font-weight: bold; }
+  .loader { border: 3px solid rgba(0,242,234,0.1); border-top: 3px solid var(--neon); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -81,162 +57,158 @@
 
 <div id="appScreen">
   <div id="feverEffect"></div>
-  <div id="comboContainer"><div id="comboNum">0</div><div id="comboLabel">COMBO!</div></div>
   <div id="timerContainer"><div id="timerBar"></div></div>
 
   <div class="header">
-    <div class="level-box" id="devVal">Lv.50.0</div>
-    <div onclick="toggleMute()" id="muteBtn" style="cursor:pointer; font-size:1.6rem;">🔊</div>
+    <div class="level-box" id="devValDisplay">Lv.50.0</div>
+    <div id="soundToggle" onclick="toggleAudio()" style="font-size:1.8rem; cursor:pointer; opacity:0.7;">🔊</div>
   </div>
 
-  <div id="quizContent"></div>
+  <div id="quizArea">
+    <div id="startScreen">
+      <h1 class="logo-main">GAP<br>STUDY</h1>
+      <p class="logo-sub">PRO EDITION</p>
+      <button class="choice-btn" onclick="initApp()" style="width:240px; background:var(--neon); color:#000; border:none; font-size:1.4rem;">▶ START</button>
+    </div>
+    <div id="mainContent" style="width:100%; display:none;">
+      <div class="word-title">QUIZ</div>
+      <div class="quiz-card">
+        <div class="question-text" id="qText"></div>
+        <div class="btn-list" id="choiceList"></div>
+      </div>
+    </div>
+  </div>
 
   <div id="expOverlay">
-    <div id="expContent"></div>
-    <div class="next-btn" onclick="startGame()">NEXT QUIZ</div>
-  </div>
-
-  <div id="startScreen">
-    <h1 class="title-logo">GAP<br>STUDY</h1>
-    <p style="color:#666; letter-spacing:5px; margin-bottom:50px;">MANAGER EDITION</p>
-    <button class="btn" onclick="startGame()" style="background:var(--neon); color:#000; width:80%; border:none; font-size:1.3rem;">▶ GAME START</button>
+    <div id="resHeader" class="result-header"></div>
+    <div class="answer-box">
+      <div class="advice-title">Correct Answer</div>
+      <div id="correctAnswerText" style="font-size:1.3rem; font-weight:bold;"></div>
+    </div>
+    <div class="advice-title">Manager's Coach</div>
+    <div class="advice-text" id="adviceText"></div>
+    <div class="next-btn" onclick="fetchNewQuiz()">GO TO NEXT</div>
   </div>
 </div>
 
 <script>
-  const DIFY_API_KEY = 'app-vxVUBvLVxHB7AtCFPpSSzwFX';
-  const DIFY_API_URL = 'https://api.dify.ai/v1/workflows/run';
+  // ==========================================
+  // 【最重要設定】ここにGemini APIキーを入力
+  // ==========================================
+  const GEMINI_API_KEY = 'AIzaSyD7NFPeKjngDDaGF1xNELU_nBl7wbzkeh8'; 
+  const GEMINI_MODEL = 'gemini-1.5-flash';
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-  let devValue = parseFloat(localStorage.getItem('myDevValue')) || 50.0;
-  let combo = 0;
-  let timerInterval = null;
-  let currentAIQuestion = null;
+  let devLevel = parseFloat(localStorage.getItem('userDevLevel')) || 50.0;
+  let currentQuiz = null;
+  let timerObj = null;
 
-  function toggleMute() {
+  function toggleAudio() {
     const bgm = document.getElementById('bgm');
     bgm.muted = !bgm.muted;
-    document.getElementById('muteBtn').innerText = bgm.muted ? "🔇" : "🔊";
+    document.getElementById('soundToggle').innerText = bgm.muted ? "🔇" : "🔊";
   }
 
-  async function startGame() {
-    const bgm = document.getElementById('bgm');
-    bgm.play().catch(() => {});
-
+  function initApp() {
+    document.getElementById('bgm').play().catch(()=>{});
     document.getElementById('startScreen').style.display = 'none';
-    document.getElementById('expOverlay').classList.remove('show');
-    hideCombo();
-    document.getElementById('quizContent').innerHTML = `<div class="loading">⚽ MANAGER IS TYPING...</div>`;
+    document.getElementById('mainContent').style.display = 'block';
+    fetchNewQuiz();
+  }
+
+  async function fetchNewQuiz() {
+    document.getElementById('expOverlay').classList.remove('active');
+    document.getElementById('mainContent').style.opacity = '0.3';
+    document.getElementById('timerBar').style.width = '100%';
+    
+    const prompt = `あなたはサッカー部の熱血マネージャーです。
+    偏差値${devLevel.toFixed(1)}レベルの生徒に、英語の勉強を促すクイズを作ってください。
+    サッカーの豆知識や日常の会話を絡め、英単語の穴埋めや意味を問う3択問題にします。
+    
+    必ず以下のJSONフォーマットのみで出力してください。Markdownの装飾( \`\`\`json 等)は一切不要です：
+    {
+      "question": "問題文をここに。英語の一部を( )にするかカタカナで書いてください。",
+      "options": ["選択肢1", "選択肢2", "選択肢3"],
+      "correct_index": 0,
+      "explanation": "マネージャーらしい熱い激励アドバイス（80文字以内）。"
+    }`;
 
     try {
-      const response = await fetch(DIFY_API_URL, {
+      const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${DIFY_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputs: { level: devValue.toString() }, response_mode: "blocking", user: "onjou-sama" })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
       });
 
       const data = await response.json();
+      const rawResponse = data.candidates[0].content.parts[0].text;
       
-      // === データ抽出ロジック ===
-      let s = JSON.stringify(data.outputs);
-      const pick = (key) => {
-        const reg = new RegExp('"' + key + '"\\s*:\\s*"(.*?)"');
-        const m = s.match(reg);
-        return m ? m[1].replace(/\\n/g, "<br>").replace(/\\"/g, '"').replace(/\\\\/g, "") : "";
-      };
-      
-      const optPart = s.match(/"options"\s*:\s*\[(.*?)\]/);
-      const options = optPart ? optPart[1].split(',').map(o => o.replace(/"/g, '').trim()) : [];
-      
-      currentAIQuestion = {
-        question: pick("question"),
-        options: options,
-        correct_index: parseInt(s.match(/"correct_index"\s*:\s*(\d)/)?.[1] || 0),
-        explanation: pick("explanation")
-      };
+      // 強力なJSON抽出
+      const jsonStart = rawResponse.indexOf('{');
+      const jsonEnd = rawResponse.lastIndexOf('}');
+      currentQuiz = JSON.parse(rawResponse.substring(jsonStart, jsonEnd + 1));
 
-      if(!currentAIQuestion.question) throw new Error();
-      displayQuiz();
-
-    } catch (e) {
-      document.getElementById('quizContent').innerHTML = `
-        <p style="color:var(--berry)">AIの接続が途切れました</p>
-        <button class="btn" onclick="startGame()">再試行</button>
-      `;
+      renderQuiz();
+    } catch (error) {
+      console.error("Gemini Error:", error);
+      alert("通信エラーが発生しました。リロードしてください。");
     }
   }
 
-  function displayQuiz() {
-    const q = currentAIQuestion;
-    document.getElementById('quizContent').innerHTML = `
-      <h2 class="word-title">QUIZ</h2>
-      <div class="question-box">${q.question}</div>
-      <div class="btn-group">
-        ${q.options.map((opt, i) => `<button class="btn" onclick="checkAnswer(${i})">${opt}</button>`).join('')}
-      </div>
-    `;
+  function renderQuiz() {
+    document.getElementById('mainContent').style.opacity = '1';
+    document.getElementById('qText').innerHTML = currentQuiz.question;
+    
+    const list = document.getElementById('choiceList');
+    list.innerHTML = '';
+    currentQuiz.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = opt;
+      btn.onclick = () => checkAnswer(idx);
+      list.appendChild(btn);
+    });
+
     startTimer(12);
   }
 
-  function startTimer(sec) {
+  function startTimer(seconds) {
     const bar = document.getElementById('timerBar');
-    let width = 100;
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      width -= 100 / (sec * 10);
-      bar.style.width = width + "%";
-      if (width <= 0) { clearInterval(timerInterval); checkAnswer(-1); }
+    let timeLeft = 100;
+    const step = 100 / (seconds * 10);
+    clearInterval(timerObj);
+    timerObj = setInterval(() => {
+      timeLeft -= step;
+      bar.style.width = timeLeft + "%";
+      if (timeLeft <= 0) {
+        clearInterval(timerObj);
+        checkAnswer(-1);
+      }
     }, 100);
   }
 
-  function checkAnswer(idx) {
-    clearInterval(timerInterval);
-    const q = currentAIQuestion;
-    const isCorrect = (idx === q.correct_index);
-
+  function checkAnswer(userIdx) {
+    clearInterval(timerObj);
+    const isCorrect = (userIdx === currentQuiz.correct_index);
+    
     if (isCorrect) {
-      combo++;
-      devValue += 0.5;
-      showCombo();
+      devLevel += 0.5;
+      document.getElementById('resHeader').innerText = "PERFECT!";
+      document.getElementById('resHeader').style.color = "var(--neon)";
+      document.getElementById('feverEffect').style.opacity = "1";
+      setTimeout(()=> document.getElementById('feverEffect').style.opacity = "0", 600);
     } else {
-      combo = 0;
-      devValue -= 0.3;
-      hideCombo();
+      devLevel -= 0.3;
+      document.getElementById('resHeader').innerText = "DON'T MIND!";
+      document.getElementById('resHeader').style.color = "var(--berry)";
     }
 
-    updateStats();
-    showOverlay(isCorrect);
-  }
-
-  function showOverlay(isCorrect) {
-    const q = currentAIQuestion;
-    const resColor = isCorrect ? 'var(--neon)' : 'var(--berry)';
-    document.getElementById('expContent').innerHTML = `
-      <div class="exp-result" style="color:${resColor}">${isCorrect ? 'PERFECT!' : 'MISS!'}</div>
-      <div class="exp-meaning">答え: ${q.options[q.correct_index]}</div>
-      <div style="font-weight:bold; color:var(--neon); margin-bottom:10px;">💡 Advice:</div>
-      <div class="exp-body">${q.explanation}</div>
-    `;
-    document.getElementById('expOverlay').classList.add('show');
-  }
-
-  function showCombo() {
-    if (combo < 2) return;
-    const container = document.getElementById('comboContainer');
-    document.getElementById('comboNum').innerText = combo;
-    container.style.opacity = "1";
-    container.style.transform = "scale(1.2)";
-    setTimeout(() => { container.style.transform = "scale(1)"; }, 100);
-    if (combo >= 5) document.getElementById('feverEffect').style.opacity = "1";
-  }
-
-  function hideCombo() {
-    document.getElementById('comboContainer').style.opacity = "0";
-    document.getElementById('feverEffect').style.opacity = "0";
-  }
-
-  function updateStats() {
-    document.getElementById('devVal').innerText = "Lv." + devValue.toFixed(1);
-    localStorage.setItem('myDevValue', devValue);
+    localStorage.setItem('userDevLevel', devLevel);
+    document.getElementById('devValDisplay').innerText = `Lv.${devLevel.toFixed(1)}`;
+    
+    document.getElementById('correctAnswerText').innerText = currentQuiz.options[currentQuiz.correct_index];
+    document.getElementById('adviceText').innerText = currentQuiz.explanation;
+    document.getElementById('expOverlay').classList.add('active');
   }
 </script>
 </body>
