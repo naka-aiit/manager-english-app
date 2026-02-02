@@ -1,91 +1,157 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GAP STUDY - Soccer Edition</title>
-    <style>
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        #appScreen { width: 100%; max-width: 400px; height: 90vh; background: radial-gradient(circle, #1a1a2e, #000); border: 1px solid #333; position: relative; display: flex; flex-direction: column; }
-        .header { padding: 20px; display: flex; justify-content: space-between; font-weight: bold; }
-        #quizContent { flex: 1; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
-        .btn { background: rgba(255,255,255,0.1); border: 1px solid #00f2ea; color: #fff; padding: 15px; margin: 10px 0; border-radius: 10px; cursor: pointer; font-size: 1rem; width: 100%; }
-        #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 70%; background: rgba(0,0,0,0.95); border-top: 2px solid #00f2ea; transform: translateY(100%); transition: 0.3s; padding: 20px; box-sizing: border-box; z-index: 10; }
-        #expOverlay.show { transform: translateY(0); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAP STUDY - Manager Edition v1.0</title>
+<style>
+  :root { --neon: #00f2ea; --berry: #ff0055; --bg: #000; }
+  body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+  #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; display: flex; flex-direction: column; border: 1px solid #333; overflow: hidden; }
+  
+  /* 演出系 */
+  #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; width: 100%; z-index: 100; }
+  .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+  .level-box { font-weight: 900; font-size: 1.2rem; color: #fff; text-shadow: 0 0 10px var(--neon); font-style: italic; }
+  
+  /* クイズエリア */
+  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; z-index: 10; }
+  .word-title { font-size: 2.8rem; font-weight: 900; color: var(--neon); margin: 0 0 10px; }
+  .question-box { font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px; font-weight: 500; }
+  
+  /* ボタン */
+  .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+  .btn:active { transform: scale(0.95); background: rgba(0,242,234,0.2); border-color: var(--neon); }
+  
+  /* 解説オーバーレイ */
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 75%; background: rgba(10,10,20,0.98); border-top: 3px solid var(--neon); transform: translateY(110%); transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); padding: 30px; box-sizing: border-box; z-index: 200; border-radius: 30px 30px 0 0; }
+  #expOverlay.show { transform: translateY(0); }
+  .next-btn { margin-top: 20px; background: var(--neon); color: #000; font-weight: 900; text-align: center; padding: 20px; border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px var(--neon); }
+  
+  /* スタート画面 */
+  #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .loading { color: var(--neon); font-size: 1.2rem; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+</style>
 </head>
 <body>
-    <audio id="bgm" src="1.mp3" loop></audio>
-    <div id="appScreen">
-        <div class="header">
-            <div id="devVal">Lv.50.0</div>
-            <div onclick="document.getElementById('bgm').play()" style="cursor:pointer;">🔊 ON</div>
-        </div>
-        <div id="quizContent">
-            <h1 style="color:#00f2ea">GAP STUDY</h1>
-            <button class="btn" onclick="startGame()">▶ GAME START</button>
-        </div>
-        <div id="expOverlay">
-            <div id="expContent"></div>
-            <button class="btn" onclick="startGame()">NEXT QUIZ</button>
-        </div>
-    </div>
+
+<audio id="bgm" src="1.mp3" loop></audio>
+
+<div id="appScreen">
+  <div id="timerBar"></div>
+  <div class="header">
+    <div class="level-box" id="devVal">Lv.50.0</div>
+    <div onclick="toggleMute()" id="muteBtn" style="cursor:pointer; font-size:1.5rem;">🔊</div>
+  </div>
+
+  <div id="quizContent"></div>
+
+  <div id="expOverlay">
+    <div id="expContent"></div>
+    <div class="next-btn" onclick="startGame()">NEXT QUIZ</div>
+  </div>
+
+  <div id="startScreen">
+    <h1 style="font-size:3.5rem; font-weight:900; font-style:italic; color:var(--neon); margin:0;">GAP STUDY</h1>
+    <p style="color:#666; letter-spacing:3px; margin-bottom:50px;">MANAGER VERSION</p>
+    <button class="btn" onclick="startGame()" style="background:var(--neon); color:#000; width:80%; border:none;">▶ GAME START</button>
+  </div>
+</div>
 
 <script>
-    const DIFY_API_KEY = 'app-vxVUBvLVxHB7AtCFPpSSzwFX';
-    const DIFY_API_URL = 'https://api.dify.ai/v1/workflows/run';
-    let devValue = 50.0;
+  const DIFY_API_KEY = 'app-vxVUBvLVxHB7AtCFPpSSzwFX';
+  const DIFY_API_URL = 'https://api.dify.ai/v1/workflows/run';
 
-    async function startGame() {
-        document.getElementById('expOverlay').classList.remove('show');
-        document.getElementById('quizContent').innerHTML = "⚽ マネージャーが思考中...";
-        document.getElementById('bgm').play().catch(()=>{});
+  let devValue = parseFloat(localStorage.getItem('myDevValue')) || 50.0;
+  let timerInterval = null;
+  let currentAIQuestion = null;
 
-        try {
-            const res = await fetch(DIFY_API_URL, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${DIFY_API_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ inputs: { level: devValue.toString() }, response_mode: "blocking", user: "onjou-sama" })
-            });
-            const data = await res.json();
-            
-            // 【重要：修正点】
-            // ログでSuccessが出ているなら、data.outputs自体がすでにクイズのオブジェクトです。
-            // 変に文字列化せず、そのまま中身を取り出します。
-            let q = data.outputs;
+  function toggleMute() {
+    const b = document.getElementById('bgm');
+    b.muted = !b.muted;
+    document.getElementById('muteBtn').innerText = b.muted ? "🔇" : "🔊";
+  }
 
-            // もしDifyがtextという名前の箱にJSONを入れている場合への保険
-            if (typeof q.text === 'string') { q = JSON.parse(q.text); }
-            else if (typeof q === 'string') { q = JSON.parse(q); }
+  async function startGame() {
+    const bgm = document.getElementById('bgm');
+    bgm.play().catch(() => {});
 
-            displayQuiz(q);
-        } catch (e) {
-            document.getElementById('quizContent').innerHTML = "通信エラー。もう一度試してください。<br>" + e;
-        }
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('expOverlay').classList.remove('show');
+    document.getElementById('quizContent').innerHTML = `<div class="loading">⚽ MANAGER IS THINKING...</div>`;
+
+    try {
+      const response = await fetch(DIFY_API_URL, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${DIFY_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputs: { level: devValue.toString() }, response_mode: "blocking", user: "onjou-sama" })
+      });
+
+      const data = await response.json();
+      
+      // === 【最強の解析エンジン】 ===
+      // 全出力を文字列化して {} の中身を強引に探し出す
+      let outputsStr = JSON.stringify(data.outputs);
+      const match = outputsStr.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("Format Error");
+
+      // 特殊文字の浄化
+      const cleanJson = match[0].replace(/\\n/g, "").replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+      currentAIQuestion = JSON.parse(cleanJson);
+      
+      displayQuiz();
+    } catch (e) {
+      console.error(e);
+      document.getElementById('quizContent').innerHTML = `
+        <div style="color:var(--berry);">ERROR: 通信に失敗しました</div>
+        <button class="btn" onclick="startGame()" style="margin-top:20px; border-color:var(--berry);">RETRY</button>
+      `;
     }
+  }
 
-    function displayQuiz(q) {
-        let optionsHtml = q.options.map((opt, i) => 
-            `<button class="btn" onclick="checkAnswer(${i}, ${q.correct_index}, '${q.explanation.replace(/'/g, "\\'")}')">${opt}</button>`
-        ).join('');
-        
-        document.getElementById('quizContent').innerHTML = `
-            <div style="font-size:1.1rem; margin-bottom:20px;">${q.question}</div>
-            ${optionsHtml}
-        `;
-    }
+  function displayQuiz() {
+    const q = currentAIQuestion;
+    document.getElementById('quizContent').innerHTML = `
+      <h2 class="word-title">QUIZ</h2>
+      <div class="question-box">${q.question}</div>
+      <div class="btn-group">
+        ${q.options.map((opt, i) => `<button class="btn" onclick="checkAnswer(${i})">${opt}</button>`).join('')}
+      </div>
+    `;
+    startTimer(12);
+  }
 
-    function checkAnswer(idx, correct, exp) {
-        const isCorrect = (idx === correct);
-        if(isCorrect) devValue += 0.5; else devValue -= 0.3;
-        document.getElementById('devVal').innerText = "Lv." + devValue.toFixed(1);
-        
-        document.getElementById('expContent').innerHTML = `
-            <h2 style="color:${isCorrect ? '#00f2ea' : '#ff0055'}">${isCorrect ? '正解！' : '残念！'}</h2>
-            <p>${exp}</p>
-        `;
-        document.getElementById('expOverlay').classList.add('show');
-    }
+  function startTimer(sec) {
+    const bar = document.getElementById('timerBar');
+    let width = 100;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      width -= 100 / (sec * 10);
+      bar.style.width = width + "%";
+      if (width <= 0) { clearInterval(timerInterval); checkAnswer(-1); }
+    }, 100);
+  }
+
+  function checkAnswer(idx) {
+    clearInterval(timerInterval);
+    const q = currentAIQuestion;
+    const isCorrect = (idx === q.correct_index);
+
+    if (isCorrect) devValue += 0.5; else devValue -= 0.3;
+    localStorage.setItem('myDevValue', devValue);
+    document.getElementById('devVal').innerText = "Lv." + devValue.toFixed(1);
+
+    document.getElementById('expContent').innerHTML = `
+      <h2 style="color:${isCorrect ? 'var(--neon)' : 'var(--berry)'}; font-size:2.5rem; margin:0;">${isCorrect ? 'PERFECT!' : 'MISS!'}</h2>
+      <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin:20px 0; font-weight:bold;">
+        答え: ${q.options[q.correct_index]}
+      </div>
+      <p style="line-height:1.6; color:#ccc; text-align:left;">${q.explanation}</p>
+    `;
+    document.getElementById('expOverlay').classList.add('show');
+  }
 </script>
 </body>
 </html>
