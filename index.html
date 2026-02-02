@@ -3,36 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GAP STUDY - Manager Edition v1.0</title>
+<title>GAP STUDY - Soccer Manager v1.0</title>
 <style>
   :root { --neon: #00f2ea; --berry: #ff0055; --bg: #000; }
-  body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-  #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; display: flex; flex-direction: column; border: 1px solid #333; overflow: hidden; }
+  body { background-color: var(--bg); color: white; font-family: "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
   
-  /* 演出系 */
-  #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; width: 100%; z-index: 100; }
+  #appScreen { 
+    width: 100%; max-width: 400px; height: 100%; max-height: 850px; 
+    background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); 
+    position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; 
+  }
+
+  /* フィーバー演出 */
+  #feverEffect { 
+    position: absolute; top:0; left:0; width:100%; height:100%; 
+    background: linear-gradient(45deg, rgba(255,0,150,0.1), rgba(0,242,234,0.1)); 
+    opacity: 0; pointer-events: none; z-index: 1; transition: opacity 0.3s; 
+  }
+
+  #timerContainer { width: 100%; height: 6px; background: #222; position: absolute; top: 0; left: 0; z-index: 100; }
+  #timerBar { width: 100%; height: 100%; background: var(--neon); transition: width 0.1s linear; box-shadow: 0 0 10px var(--neon); }
+
   .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-  .level-box { font-weight: 900; font-size: 1.2rem; color: #fff; text-shadow: 0 0 10px var(--neon); font-style: italic; }
-  
-  /* クイズエリア */
-  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; z-index: 10; }
-  .word-title { font-size: 2.8rem; font-weight: 900; color: var(--neon); margin: 0 0 10px; }
-  .question-box { font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px; font-weight: 500; }
-  
-  /* ボタン */
+  .level-box { font-weight: 900; font-size: 1.4rem; color: #fff; text-shadow: 0 0 10px var(--neon); font-style: italic; }
+
+  /* コンボ表示 */
+  #comboContainer { 
+    position: absolute; top: 120px; width: 100%; text-align: center; pointer-events: none; z-index: 5; 
+    opacity: 0; transform: scale(0.5); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+  }
+  #comboNum { font-size: 4.5rem; font-weight: 900; color: var(--berry); text-shadow: 2px 2px 0 #fff, 0 0 20px var(--berry); }
+  #comboLabel { font-size: 1.2rem; font-weight: bold; color: #fff; letter-spacing: 5px; }
+
+  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; position: relative; z-index: 10; }
+  .word-title { font-size: 3rem; font-weight: 900; color: var(--neon); margin: 0 0 10px; }
+  .question-box { font-size: 1.2rem; line-height: 1.6; text-align: center; margin-bottom: 35px; min-height: 80px; }
+
   .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; }
-  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-  .btn:active { transform: scale(0.95); background: rgba(0,242,234,0.2); border-color: var(--neon); }
-  
-  /* 解説オーバーレイ */
-  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 75%; background: rgba(10,10,20,0.98); border-top: 3px solid var(--neon); transform: translateY(110%); transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); padding: 30px; box-sizing: border-box; z-index: 200; border-radius: 30px 30px 0 0; }
+  .btn { 
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); 
+    color: white; padding: 20px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; 
+    cursor: pointer; transition: 0.2s; text-align: center; 
+  }
+  .btn:active { transform: scale(0.96); background: rgba(0,242,234,0.15); border-color: var(--neon); }
+
+  #expOverlay { 
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 78%; 
+    background: rgba(10,10,20,0.98); border-top: 3px solid var(--neon); 
+    transform: translateY(110%); transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); 
+    display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; z-index: 200; 
+    border-radius: 35px 35px 0 0; 
+  }
   #expOverlay.show { transform: translateY(0); }
-  .next-btn { margin-top: 20px; background: var(--neon); color: #000; font-weight: 900; text-align: center; padding: 20px; border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px var(--neon); }
-  
-  /* スタート画面 */
-  #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-  .loading { color: var(--neon); font-size: 1.2rem; animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+  #expContent { flex: 1; overflow-y: auto; text-align: left; }
+  .exp-result { font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; text-align: center; }
+  .exp-meaning { font-size: 1.2rem; color: #fff; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 25px; font-weight: bold; text-align: center; }
+  .exp-body { color: #ddd; font-size: 1.05rem; line-height: 1.7; }
+
+  .next-btn { 
+    margin-top: 20px; background: var(--neon); color: #000; font-weight: 900; 
+    text-align: center; padding: 20px; border-radius: 50px; cursor: pointer; 
+    box-shadow: 0 0 20px var(--neon); font-size: 1.2rem; 
+  }
+
+  #startScreen { 
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; 
+    z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+  }
+  .title-logo { font-size: 4rem; font-weight: 900; font-style: italic; color: var(--neon); margin: 0; line-height: 1; }
+  .loading { margin-top: 20px; color: var(--neon); font-weight: bold; animation: blink 1s infinite; }
+  @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 </style>
 </head>
 <body>
@@ -40,10 +80,13 @@
 <audio id="bgm" src="1.mp3" loop></audio>
 
 <div id="appScreen">
-  <div id="timerBar"></div>
+  <div id="feverEffect"></div>
+  <div id="comboContainer"><div id="comboNum">0</div><div id="comboLabel">COMBO!</div></div>
+  <div id="timerContainer"><div id="timerBar"></div></div>
+
   <div class="header">
     <div class="level-box" id="devVal">Lv.50.0</div>
-    <div onclick="toggleMute()" id="muteBtn" style="cursor:pointer; font-size:1.5rem;">🔊</div>
+    <div onclick="toggleMute()" id="muteBtn" style="cursor:pointer; font-size:1.6rem;">🔊</div>
   </div>
 
   <div id="quizContent"></div>
@@ -54,9 +97,9 @@
   </div>
 
   <div id="startScreen">
-    <h1 style="font-size:3.5rem; font-weight:900; font-style:italic; color:var(--neon); margin:0;">GAP STUDY</h1>
-    <p style="color:#666; letter-spacing:3px; margin-bottom:50px;">MANAGER VERSION</p>
-    <button class="btn" onclick="startGame()" style="background:var(--neon); color:#000; width:80%; border:none;">▶ GAME START</button>
+    <h1 class="title-logo">GAP<br>STUDY</h1>
+    <p style="color:#666; letter-spacing:5px; margin-bottom:50px;">MANAGER EDITION</p>
+    <button class="btn" onclick="startGame()" style="background:var(--neon); color:#000; width:80%; border:none; font-size:1.3rem;">▶ GAME START</button>
   </div>
 </div>
 
@@ -65,13 +108,14 @@
   const DIFY_API_URL = 'https://api.dify.ai/v1/workflows/run';
 
   let devValue = parseFloat(localStorage.getItem('myDevValue')) || 50.0;
+  let combo = 0;
   let timerInterval = null;
   let currentAIQuestion = null;
 
   function toggleMute() {
-    const b = document.getElementById('bgm');
-    b.muted = !b.muted;
-    document.getElementById('muteBtn').innerText = b.muted ? "🔇" : "🔊";
+    const bgm = document.getElementById('bgm');
+    bgm.muted = !bgm.muted;
+    document.getElementById('muteBtn').innerText = bgm.muted ? "🔇" : "🔊";
   }
 
   async function startGame() {
@@ -80,7 +124,8 @@
 
     document.getElementById('startScreen').style.display = 'none';
     document.getElementById('expOverlay').classList.remove('show');
-    document.getElementById('quizContent').innerHTML = `<div class="loading">⚽ MANAGER IS THINKING...</div>`;
+    hideCombo();
+    document.getElementById('quizContent').innerHTML = `<div class="loading">⚽ MANAGER IS TYPING...</div>`;
 
     try {
       const response = await fetch(DIFY_API_URL, {
@@ -91,22 +136,31 @@
 
       const data = await response.json();
       
-      // === 【最強の解析エンジン】 ===
-      // 全出力を文字列化して {} の中身を強引に探し出す
-      let outputsStr = JSON.stringify(data.outputs);
-      const match = outputsStr.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("Format Error");
-
-      // 特殊文字の浄化
-      const cleanJson = match[0].replace(/\\n/g, "").replace(/\\"/g, '"').replace(/\\\\/g, "\\");
-      currentAIQuestion = JSON.parse(cleanJson);
+      // === データ抽出ロジック ===
+      let s = JSON.stringify(data.outputs);
+      const pick = (key) => {
+        const reg = new RegExp('"' + key + '"\\s*:\\s*"(.*?)"');
+        const m = s.match(reg);
+        return m ? m[1].replace(/\\n/g, "<br>").replace(/\\"/g, '"').replace(/\\\\/g, "") : "";
+      };
       
+      const optPart = s.match(/"options"\s*:\s*\[(.*?)\]/);
+      const options = optPart ? optPart[1].split(',').map(o => o.replace(/"/g, '').trim()) : [];
+      
+      currentAIQuestion = {
+        question: pick("question"),
+        options: options,
+        correct_index: parseInt(s.match(/"correct_index"\s*:\s*(\d)/)?.[1] || 0),
+        explanation: pick("explanation")
+      };
+
+      if(!currentAIQuestion.question) throw new Error();
       displayQuiz();
+
     } catch (e) {
-      console.error(e);
       document.getElementById('quizContent').innerHTML = `
-        <div style="color:var(--berry);">ERROR: 通信に失敗しました</div>
-        <button class="btn" onclick="startGame()" style="margin-top:20px; border-color:var(--berry);">RETRY</button>
+        <p style="color:var(--berry)">AIの接続が途切れました</p>
+        <button class="btn" onclick="startGame()">再試行</button>
       `;
     }
   }
@@ -139,18 +193,50 @@
     const q = currentAIQuestion;
     const isCorrect = (idx === q.correct_index);
 
-    if (isCorrect) devValue += 0.5; else devValue -= 0.3;
-    localStorage.setItem('myDevValue', devValue);
-    document.getElementById('devVal').innerText = "Lv." + devValue.toFixed(1);
+    if (isCorrect) {
+      combo++;
+      devValue += 0.5;
+      showCombo();
+    } else {
+      combo = 0;
+      devValue -= 0.3;
+      hideCombo();
+    }
 
+    updateStats();
+    showOverlay(isCorrect);
+  }
+
+  function showOverlay(isCorrect) {
+    const q = currentAIQuestion;
+    const resColor = isCorrect ? 'var(--neon)' : 'var(--berry)';
     document.getElementById('expContent').innerHTML = `
-      <h2 style="color:${isCorrect ? 'var(--neon)' : 'var(--berry)'}; font-size:2.5rem; margin:0;">${isCorrect ? 'PERFECT!' : 'MISS!'}</h2>
-      <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin:20px 0; font-weight:bold;">
-        答え: ${q.options[q.correct_index]}
-      </div>
-      <p style="line-height:1.6; color:#ccc; text-align:left;">${q.explanation}</p>
+      <div class="exp-result" style="color:${resColor}">${isCorrect ? 'PERFECT!' : 'MISS!'}</div>
+      <div class="exp-meaning">答え: ${q.options[q.correct_index]}</div>
+      <div style="font-weight:bold; color:var(--neon); margin-bottom:10px;">💡 Advice:</div>
+      <div class="exp-body">${q.explanation}</div>
     `;
     document.getElementById('expOverlay').classList.add('show');
+  }
+
+  function showCombo() {
+    if (combo < 2) return;
+    const container = document.getElementById('comboContainer');
+    document.getElementById('comboNum').innerText = combo;
+    container.style.opacity = "1";
+    container.style.transform = "scale(1.2)";
+    setTimeout(() => { container.style.transform = "scale(1)"; }, 100);
+    if (combo >= 5) document.getElementById('feverEffect').style.opacity = "1";
+  }
+
+  function hideCombo() {
+    document.getElementById('comboContainer').style.opacity = "0";
+    document.getElementById('feverEffect').style.opacity = "0";
+  }
+
+  function updateStats() {
+    document.getElementById('devVal').innerText = "Lv." + devValue.toFixed(1);
+    localStorage.setItem('myDevValue', devValue);
   }
 </script>
 </body>
