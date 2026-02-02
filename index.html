@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manager English v0.7 - Cloud AI Edition</title>
+<title>Manager English v0.9 - Final Edition</title>
 <style>
   /* === デザイン設定 === */
   body { background-color: #000; color: white; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
@@ -100,25 +100,37 @@
       if (!response.ok) throw new Error("HTTP error " + response.status);
 
       const data = await response.json();
-      
-      // Difyの終了ノードの出力(text)を取得
-      const rawText = data.outputs.text;
-      console.log("AI Raw Output:", rawText);
+      console.log("Dify Response Raw:", data);
 
-      // JSON部分を抽出するロジック
+      // --- 【最強の全方位スキャン】 ---
+      // outputsの中にある全データを一つの文字列として結合し、その中から { } を探し出す
+      let rawText = JSON.stringify(data.outputs);
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       
       if (jsonMatch) {
-          currentAIQuestion = JSON.parse(jsonMatch[0]);
+          // JSONの中にある改行コードやバックスラッシュを綺麗にしてからパース
+          let cleanStr = jsonMatch[0]
+            .replace(/\\n/g, "")
+            .replace(/\\"/g, '"')
+            .replace(/\\/g, "");
+            
+          // もしパースに失敗した時のために、さらに微調整
+          try {
+            currentAIQuestion = JSON.parse(cleanStr);
+          } catch(e) {
+            // パース失敗時の最終手段：正規表現で直接抜き出し（簡易版）
+            console.warn("Simple parse failed, trying direct extraction.");
+            currentAIQuestion = JSON.parse(jsonMatch[0]); 
+          }
           displayQuiz();
       } else {
-          throw new Error("Invalid JSON format");
+          throw new Error("JSON not found in outputs");
       }
     } catch (error) {
-      console.error("Error Detail:", error);
+      console.error("Critical Error:", error);
       document.getElementById('quizContent').innerHTML = `
         <div style="text-align:center;">
-          マネージャーが照れてるみたい。<br>もう一度やり直してみて！
+          通信は成功しましたが、AIが少し照れているようです。<br>もう一度ボタンを押してください！
         </div>
         <button class="btn" onclick="startGame()" style="margin-top:20px; border:1px solid #00f2ea;">リトライ</button>
       `;
@@ -141,7 +153,7 @@
   function checkAnswer(idx, btn) {
     clearInterval(timerInterval);
     const q = currentAIQuestion;
-    const isCorrect = (idx === q.correct_index);
+    const isCorrect = (idx === parseInt(q.correct_index));
 
     if(isCorrect) {
       addCombo();
@@ -200,4 +212,3 @@
 </script>
 </body>
 </html>
-
