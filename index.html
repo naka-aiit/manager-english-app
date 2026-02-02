@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manager English v0.7 - Cloud AI Edition</title>
 <style>
-  /* === JNakaさんの元のスタイルをそのまま継承 === */
+  /* === スタイルはそのまま維持 === */
   body { background-color: #000; color: white; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
   #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
   #feverEffect { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(45deg, rgba(255,0,150,0.1), rgba(0,242,234,0.1)); opacity: 0; pointer-events: none; z-index: 1; transition: opacity 0.3s; }
@@ -13,32 +13,27 @@
   #timerBar { width: 100%; height: 100%; background: #00f2ea; transition: width 0.1s linear; box-shadow: 0 0 10px #00f2ea; }
   .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(0,0,0,0.2); }
   .header-left { display: flex; align-items: center; gap: 15px; }
-  .home-btn { font-size: 1.5rem; cursor: pointer; text-shadow: 0 0 5px #fff; transition: transform 0.1s; }
-  .home-btn:active { transform: scale(0.8); }
+  .home-btn { font-size: 1.5rem; cursor: pointer; text-shadow: 0 0 5px #fff; }
   .level-box { font-weight: 900; font-size: 1.2rem; color: #fff; text-shadow: 0 0 10px #00f2ea; font-style: italic; }
   #comboContainer { position: absolute; top: 15%; width: 100%; text-align: center; pointer-events: none; z-index: 5; opacity: 0; transform: scale(0.5); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
   #comboNum { font-size: 4rem; font-weight: 900; color: #ff0055; text-shadow: 2px 2px 0 #fff, 0 0 20px #ff0055; }
   #comboLabel { font-size: 1.2rem; font-weight: bold; color: #fff; letter-spacing: 5px; }
   #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; position: relative; z-index: 10; }
-  .word-title { font-size: 3rem; font-weight: 800; margin: 0 0 5px 0; text-align: center; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-  .question-box { font-size: 1.2rem; font-weight: 500; line-height: 1.5; text-align: center; margin-bottom: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+  .word-title { font-size: 3rem; font-weight: 800; margin: 0 0 5px 0; text-align: center; }
+  .question-box { font-size: 1.2rem; font-weight: 500; line-height: 1.5; text-align: center; margin-bottom: 30px; }
   .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; }
-  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.1s, background 0.2s; text-align: center; position: relative; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.1s; text-align: center; }
   .btn:active { transform: scale(0.96); }
-  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 75%; background: rgba(10,10,15,0.98); border-top: 3px solid #00f2ea; border-radius: 25px 25px 0 0; transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; z-index: 200; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); }
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 75%; background: rgba(10,10,15,0.98); border-top: 3px solid #00f2ea; border-radius: 25px 25px 0 0; transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; z-index: 200; }
   #expOverlay.show { transform: translateY(0); }
   #expContent { flex: 1; overflow-y: auto; }
-  .exp-question-ref { font-size: 0.95rem; color: #888; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 2px solid #555; font-style: italic; }
-  .exp-result { font-size: 2rem; font-weight: 900; margin-bottom: 10px; text-align: center; letter-spacing: 2px; }
+  .exp-result { font-size: 2rem; font-weight: 900; margin-bottom: 10px; text-align: center; }
   .exp-meaning { font-size: 1.1rem; color: #fff; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; }
-  .exp-manager { font-size: 0.9rem; color: #888; margin-bottom: 5px; font-weight: bold; }
   .exp-body { color: #ddd; font-size: 1rem; line-height: 1.6; margin-bottom: 15px; }
-  .next-btn { margin-top: 15px; background: #00f2ea; color: #000; font-weight: 900; text-align: center; padding: 18px; border-radius: 50px; cursor: pointer; box-shadow: 0 0 15px #00f2ea; letter-spacing: 2px; }
+  .next-btn { margin-top: 15px; background: #00f2ea; color: #000; font-weight: 900; text-align: center; padding: 18px; border-radius: 50px; cursor: pointer; box-shadow: 0 0 15px #00f2ea; }
   #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-  .title-logo { font-size: 3.5rem; font-weight: 900; color: #fff; font-style: italic; letter-spacing: -2px; margin-bottom: 5px; background: linear-gradient(to right, #00f2ea, #ff0055); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
-  @keyframes shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(2px); } }
-  .loading-spinner { color: #00f2ea; font-size: 1rem; margin-top: 20px; }
+  .title-logo { font-size: 3.5rem; font-weight: 900; color: #fff; font-style: italic; background: linear-gradient(to right, #00f2ea, #ff0055); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .loading-spinner { color: #00f2ea; font-size: 1.2rem; text-align: center; }
 </style>
 </head>
 <body>
@@ -75,26 +70,19 @@
 </div>
 
 <script>
-  // --- クラウド設定 ---
   const DIFY_API_KEY = 'app-vxVUBvLVxHB7AtCFPpSSzwFX';
-  const DIFY_API_URL = 'https://api.dify.ai/v1/workflows/run';
+  const DIFY_API_URL = '[https://api.dify.ai/v1/workflows/run](https://api.dify.ai/v1/workflows/run)';
 
   let devValue = parseFloat(localStorage.getItem('myDevValue')) || 50.0;
   let combo = 0;
   let timerInterval = null;
   let currentAIQuestion = null;
 
-  // ゲーム開始：AIから問題を一問もらう
   async function startGame() {
     document.getElementById('startScreen').style.display = 'none';
     document.getElementById('expOverlay').classList.remove('show');
     hideCombo();
-    
-    // ロード中画面
-    document.getElementById('quizContent').innerHTML = `
-      <div class="loading-spinner">⚽ マネージャーがクイズを作成中...</div>
-    `;
-
+    document.getElementById('quizContent').innerHTML = `<div class="loading-spinner">⚽ マネージャーが<br>クイズを作成中...</div>`;
     playBGM();
 
     try {
@@ -109,20 +97,21 @@
       });
 
       const data = await response.json();
-      // AIからの返信を解析（Difyの「終了」ノードの出力名が text の想定）
-      // JSON形式で返ってくるようにDify側で組んでいる場合は JSON.parse が必要
-      try {
-          currentAIQuestion = JSON.parse(data.outputs.text);
-      } catch(e) {
-          // JSONでない場合（単なるテキストの場合）のフォールバック
-          alert("AIの返答形式が正しくありません。Difyの出力をJSON形式にしてください。");
-          return;
+      const rawText = data.outputs.text;
+      
+      // 【最強の修正】AIの返答から { ... } だけを抜き取る魔法の正規表現
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      
+      if (jsonMatch) {
+          currentAIQuestion = JSON.parse(jsonMatch[0]);
+          displayQuiz();
+      } else {
+          console.error("No JSON found in:", rawText);
+          throw new Error("形式エラー");
       }
-
-      displayQuiz();
     } catch (error) {
       console.error(error);
-      document.getElementById('quizContent').innerHTML = "通信エラー。APIキーかURLを確認してね。";
+      document.getElementById('quizContent').innerHTML = `<div style="text-align:center;">マネージャーが照れてるみたい。<br>もう一度やり直してみて！</div><button class="btn" onclick="startGame()" style="margin-top:20px;">リトライ</button>`;
     }
   }
 
@@ -136,7 +125,7 @@
       </div>
     `;
     document.getElementById('quizContent').innerHTML = html;
-    startTimer(12); // 12秒制限
+    startTimer(12);
   }
 
   function checkAnswer(idx, btn) {
@@ -148,16 +137,14 @@
       addCombo();
       devValue += 0.5;
       btn.style.background = "#00f2ea"; btn.style.color = "#000";
-      showOverlay(true);
     } else {
       combo = 0;
       devValue -= 0.3;
       document.getElementById('feverEffect').style.opacity = "0";
-      btn.classList.add('shake');
       btn.style.background = "#ff0055";
-      showOverlay(false);
     }
     updateStats();
+    showOverlay(isCorrect);
   }
 
   function showOverlay(isCorrect) {
@@ -168,13 +155,12 @@
     document.getElementById('expContent').innerHTML = `
       <div class="exp-result" style="color:${resColor}">${resText}</div>
       <div class="exp-meaning">答え: ${q.options[q.correct_index]}</div>
-      <div class="exp-manager">💡 Manager's Advice:</div>
+      <div style="font-weight:bold; color:#00f2ea; margin-bottom:5px;">💡 Manager's Advice:</div>
       <div class="exp-body">${q.explanation}</div>
     `;
     document.getElementById('expOverlay').classList.add('show');
   }
 
-  // --- 補助関数 (JNakaさんの元のロジックを流用) ---
   function startTimer(seconds) {
     const bar = document.getElementById('timerBar');
     let timeLeft = 100;
