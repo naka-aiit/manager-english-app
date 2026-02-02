@@ -3,63 +3,200 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manager English Debug</title>
+<title>Manager English v0.7 - Cloud AI Edition</title>
 <style>
-  body { background-color: #000; color: white; font-family: sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-  #appScreen { width: 100%; max-width: 400px; height: 100%; background: #000; position: relative; border: 1px solid #333; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
-  .btn { background: #00f2ea; color: #000; padding: 15px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer; width: 100%; margin-top: 20px; }
-  #debugLog { background: #222; color: #0f0; font-family: monospace; font-size: 12px; padding: 10px; margin-top: 20px; overflow-y: auto; height: 300px; white-space: pre-wrap; border: 1px solid #444; }
-  .status { color: #ff0055; font-weight: bold; }
+  /* === デザイン設定 === */
+  body { background-color: #000; color: white; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+  #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
+  #feverEffect { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(45deg, rgba(255,0,150,0.1), rgba(0,242,234,0.1)); opacity: 0; pointer-events: none; z-index: 1; transition: opacity 0.3s; }
+  #timerContainer { width: 100%; height: 6px; background: #222; position: absolute; top: 0; left: 0; z-index: 100; }
+  #timerBar { width: 100%; height: 100%; background: #00f2ea; transition: width 0.1s linear; box-shadow: 0 0 10px #00f2ea; }
+  .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(0,0,0,0.2); }
+  .header-left { display: flex; align-items: center; gap: 15px; }
+  .home-btn { font-size: 1.5rem; cursor: pointer; text-shadow: 0 0 5px #fff; }
+  .level-box { font-weight: 900; font-size: 1.2rem; color: #fff; text-shadow: 0 0 10px #00f2ea; font-style: italic; }
+  #comboContainer { position: absolute; top: 15%; width: 100%; text-align: center; pointer-events: none; z-index: 5; opacity: 0; transform: scale(0.5); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  #comboNum { font-size: 4rem; font-weight: 900; color: #ff0055; text-shadow: 2px 2px 0 #fff, 0 0 20px #ff0055; }
+  #comboLabel { font-size: 1.2rem; font-weight: bold; color: #fff; letter-spacing: 5px; }
+  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; position: relative; z-index: 10; }
+  .word-title { font-size: 3rem; font-weight: 800; margin: 0 0 5px 0; text-align: center; }
+  .question-box { font-size: 1.2rem; font-weight: 500; line-height: 1.5; text-align: center; margin-bottom: 30px; }
+  .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.1s; text-align: center; }
+  .btn:active { transform: scale(0.96); }
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 75%; background: rgba(10,10,15,0.98); border-top: 3px solid #00f2ea; border-radius: 25px 25px 0 0; transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; z-index: 200; }
+  #expOverlay.show { transform: translateY(0); }
+  #expContent { flex: 1; overflow-y: auto; }
+  .exp-result { font-size: 2rem; font-weight: 900; margin-bottom: 10px; text-align: center; }
+  .exp-meaning { font-size: 1.1rem; color: #fff; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; }
+  .exp-body { color: #ddd; font-size: 1rem; line-height: 1.6; margin-bottom: 15px; }
+  .next-btn { margin-top: 15px; background: #00f2ea; color: #000; font-weight: 900; text-align: center; padding: 18px; border-radius: 50px; cursor: pointer; box-shadow: 0 0 15px #00f2ea; }
+  #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .title-logo { font-size: 3.5rem; font-weight: 900; color: #fff; font-style: italic; background: linear-gradient(to right, #00f2ea, #ff0055); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+  .loading-spinner { color: #00f2ea; font-size: 1.2rem; text-align: center; }
 </style>
 </head>
 <body>
 
+<audio id="bgm" loop></audio>
+
 <div id="appScreen">
-  <h2 style="text-align:center; color:#00f2ea;">DEBUG MODE</h2>
-  <div id="status" class="status">待機中...</div>
-  <button class="btn" onclick="testConnection()">通信テスト開始</button>
-  
-  <div id="debugLog">ここにAIからの返信が表示されます...</div>
-  <button class="btn" style="background:#444; color:#ccc;" onclick="location.reload()">画面をリセット</button>
+  <div id="feverEffect"></div>
+  <div id="comboContainer"><div id="comboNum">0</div><div id="comboLabel">COMBO!</div></div>
+  <div id="timerContainer"><div id="timerBar"></div></div>
+
+  <div class="header">
+    <div class="header-left">
+      <div class="home-btn" onclick="backToTitle()">🏠</div>
+      <div class="level-box" id="devVal">Lv.50.0</div>
+    </div>
+    <div style="font-size:1.5rem; cursor:pointer;" onclick="toggleMute()" id="muteBtn">🔊</div>
+  </div>
+
+  <div id="quizContent"></div>
+
+  <div id="expOverlay">
+    <div id="expContent"></div>
+    <div class="next-btn" onclick="startGame()">NEXT QUIZ</div>
+  </div>
+
+  <div id="startScreen">
+    <div class="title-logo">GAP<br>STUDY</div>
+    <div style="color:#666; font-size:0.9rem; margin-bottom:50px; letter-spacing:2px;">TIKTOK STYLE ENGLISH</div>
+    <button class="btn" onclick="startGame()" style="background:linear-gradient(45deg, #00f2ea, #0080ff); width:80%; border:none;">
+      ▶ GAME START
+    </button>
+  </div>
 </div>
 
 <script>
+  // --- クラウド設定 ---
   const DIFY_API_KEY = 'app-vxVUBvLVxHB7AtCFPpSSzwFX';
   const DIFY_API_URL = 'https://api.dify.ai/v1/workflows/run';
 
-  async function testConnection() {
-    const log = document.getElementById('debugLog');
-    const status = document.getElementById('status');
-    log.innerText = "通信開始...\n";
-    status.innerText = "通信中...";
+  let devValue = parseFloat(localStorage.getItem('myDevValue')) || 50.0;
+  let combo = 0;
+  let timerInterval = null;
+  let currentAIQuestion = null;
+
+  async function startGame() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('expOverlay').classList.remove('show');
+    hideCombo();
+    document.getElementById('quizContent').innerHTML = `<div class="loading-spinner">⚽ マネージャーが<br>クイズを作成中...</div>`;
+    playBGM();
 
     try {
       const response = await fetch(DIFY_API_URL, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${DIFY_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          inputs: { "level": "50" },
+          inputs: { "level": devValue.toString() },
           response_mode: "blocking",
-          user: "debug-user"
+          user: "onjou-sama"
         })
       });
 
-      log.innerText += `HTTPステータス: ${response.status}\n`;
+      if (!response.ok) throw new Error("HTTP error " + response.status);
+
       const data = await response.json();
-      log.innerText += `--- Difyからの全データ ---\n${JSON.stringify(data, null, 2)}\n`;
+      
+      // Difyの終了ノードの出力(text)を取得
+      const rawText = data.outputs.text;
+      console.log("AI Raw Output:", rawText);
 
-      if (data.outputs && (data.outputs.text || data.outputs.LLM_2)) {
-        status.innerText = "成功！データは届いています。";
-        status.style.color = "#00f2ea";
+      // JSON部分を抽出するロジック
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      
+      if (jsonMatch) {
+          currentAIQuestion = JSON.parse(jsonMatch[0]);
+          displayQuiz();
       } else {
-        status.innerText = "失敗：データ構造が違います。";
+          throw new Error("Invalid JSON format");
       }
-
     } catch (error) {
-      log.innerText += `エラー発生: ${error.message}\n`;
-      status.innerText = "通信自体に失敗しました。";
+      console.error("Error Detail:", error);
+      document.getElementById('quizContent').innerHTML = `
+        <div style="text-align:center;">
+          マネージャーが照れてるみたい。<br>もう一度やり直してみて！
+        </div>
+        <button class="btn" onclick="startGame()" style="margin-top:20px; border:1px solid #00f2ea;">リトライ</button>
+      `;
     }
   }
+
+  function displayQuiz() {
+    const q = currentAIQuestion;
+    const html = `
+      <h2 class="word-title">QUIZ</h2>
+      <div class="question-box">${q.question.replace(/\n/g, '<br>')}</div>
+      <div class="btn-group">
+        ${q.options.map((opt, i) => `<button class="btn" onclick="checkAnswer(${i}, this)">${opt}</button>`).join('')}
+      </div>
+    `;
+    document.getElementById('quizContent').innerHTML = html;
+    startTimer(12);
+  }
+
+  function checkAnswer(idx, btn) {
+    clearInterval(timerInterval);
+    const q = currentAIQuestion;
+    const isCorrect = (idx === q.correct_index);
+
+    if(isCorrect) {
+      addCombo();
+      devValue += 0.5;
+      btn.style.background = "#00f2ea"; btn.style.color = "#000";
+    } else {
+      combo = 0;
+      devValue -= 0.3;
+      document.getElementById('feverEffect').style.opacity = "0";
+      btn.style.background = "#ff0055";
+    }
+    updateStats();
+    showOverlay(isCorrect);
+  }
+
+  function showOverlay(isCorrect) {
+    const q = currentAIQuestion;
+    const resColor = isCorrect ? "#00f2ea" : "#ff0055";
+    const resText = isCorrect ? "✨ PERFECT!" : "😢 DON'T MIND!";
+    
+    document.getElementById('expContent').innerHTML = `
+      <div class="exp-result" style="color:${resColor}">${resText}</div>
+      <div class="exp-meaning">答え: ${q.options[q.correct_index]}</div>
+      <div style="font-weight:bold; color:#00f2ea; margin-bottom:5px;">💡 Manager's Advice:</div>
+      <div class="exp-body">${q.explanation}</div>
+    `;
+    document.getElementById('expOverlay').classList.add('show');
+  }
+
+  function startTimer(seconds) {
+    const bar = document.getElementById('timerBar');
+    let timeLeft = 100;
+    const step = 100 / (seconds * 10);
+    timerInterval = setInterval(() => {
+      timeLeft -= step;
+      bar.style.width = timeLeft + "%";
+      if(timeLeft <= 0) { clearInterval(timerInterval); showOverlay(false); }
+    }, 100);
+  }
+
+  function addCombo() {
+    combo++;
+    if(combo >= 2) {
+      const cBox = document.getElementById('comboContainer');
+      document.getElementById('comboNum').innerText = combo;
+      cBox.style.opacity = "1";
+      if(combo >= 5) document.getElementById('feverEffect').style.opacity = "1";
+    }
+  }
+
+  function hideCombo() { document.getElementById('comboContainer').style.opacity = "0"; }
+  function updateStats() { document.getElementById('devVal').innerText = "Lv." + devValue.toFixed(1); localStorage.setItem('myDevValue', devValue); }
+  function backToTitle() { location.reload(); }
+  function toggleMute() { const b = document.getElementById('bgm'); b.muted = !b.muted; document.getElementById('muteBtn').innerText = b.muted ? "🔇" : "🔊"; }
+  function playBGM() { const bgm = document.getElementById('bgm'); if(bgm.paused){ bgm.src="1.mp3"; bgm.volume=0.3; bgm.play().catch(e=>{}); } }
 </script>
 </body>
 </html>
