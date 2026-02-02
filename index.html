@@ -1,152 +1,77 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GAP STUDY AI-Edition</title>
-<style>
-  /* スタイル（CSS）は元のデザインを維持 */
-  body { background-color: #000; color: white; font-family: sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
-  #appScreen { width: 100%; max-width: 400px; height: 100%; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; overflow: hidden; display: flex; flex-direction: column; }
-  #cardContainer { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; z-index: 5; }
-  .quiz-card { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; transition: transform 0.3s ease-out, opacity 0.3s; }
-  .card-active { transform: translateY(0); opacity: 1; z-index: 10; }
-  .card-fly-up { transform: translateY(-120%); opacity: 0; z-index: 10; }
-  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: auto; max-height: 80%; background: rgba(15,15,20,0.98); border-top: 3px solid #00f2ea; border-radius: 25px 25px 0 0; transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1); padding: 25px; box-sizing: border-box; z-index: 500; }
-  #expOverlay.show { transform: translateY(0); }
-  .next-btn { width: 100%; padding: 15px; background: #00f2ea; color: #000; font-weight: 900; text-align: center; border-radius: 50px; cursor: pointer; margin-top: 10px; }
-  .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 320px; }
-  .btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 16px; border-radius: 50px; font-size: 1.0rem; font-weight: bold; cursor: pointer; }
-  .question-box { font-size: 1.2rem; text-align: center; margin-bottom: 30px; background: rgba(0,0,0,0.6); padding: 20px; border-radius: 15px; width: 90%; }
-  .header { position: absolute; top: 0; left: 0; width: 100%; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
-  #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAP STUDY - サッカー部マネージャー</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        h1 { color: #1a73e8; font-size: 1.5rem; margin-bottom: 1rem; }
+        #response { margin-top: 1.5rem; padding: 1rem; background: #e8f0fe; border-radius: 10px; text-align: left; min-height: 100px; white-space: pre-wrap; line-height: 1.6; }
+        button { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 25px; font-size: 1rem; cursor: pointer; transition: background 0.3s; width: 100%; }
+        button:hover { background: #1557b0; }
+        button:disabled { background: #ccc; }
+        .loading { color: #666; font-style: italic; }
+    </style>
 </head>
 <body>
 
-<div id="appScreen">
-  <div class="header">
-    <div class="level-box" id="devVal">Lv.50.0</div>
-  </div>
-
-  <div id="cardContainer"></div>
-
-  <div id="expOverlay">
-    <div id="expResult" style="font-size: 2rem; font-weight: 900; text-align: center; margin-bottom: 10px;"></div>
-    <div id="expContent" style="color: #ddd; line-height: 1.6; margin-bottom: 20px;"></div>
-    <div class="next-btn" onclick="nextQuestionAnimation()">NEXT ▶</div>
-  </div>
-
-  <div id="startScreen">
-    <h1 style="color: #00f2ea; font-style: italic; font-size: 3rem;">GAP STUDY</h1>
-    <button class="btn" onclick="startGame()" style="width: 80%; background: #00f2ea; color: #000;">▶ GAME START</button>
-  </div>
+<div class="card">
+    <h1>⚽ GAP STUDY</h1>
+    <p>マネージャーがクイズを準備中...</p>
+    <button id="startButton">GAME START</button>
+    <div id="response">ここにクイズが表示されます</div>
 </div>
 
 <script>
-  // === Dify API 連携設定 ===
-  const DIFY_API_KEY = 'app-vxVUBvLVxHB7AtCFPpSSzwFX';
-  const DIFY_API_URL = 'https://api.dify.ai/v1/workflows/run';
+    // --- ここを最新の情報に書き換えてください ---
+    const DIFY_API_KEY = 'app-vxVUBvLVxHB7AtCFPpSSzwFX'; 
+    const DIFY_API_URL = 'https://api.dify.ai/v1/workflows/run';
+    // ------------------------------------------
 
-  let devValue = 50.0;
-  let currentQuestions = [];
-  let currentIndex = 0;
-  let isAnswering = false;
-  let nextQueuingData = null;
+    document.getElementById('startButton').addEventListener('click', async () => {
+        const btn = document.getElementById('startButton');
+        const resDiv = document.getElementById('response');
+        
+        btn.disabled = true;
+        resDiv.innerHTML = '<span class="loading">マネージャーが考え中...⚽</span>';
 
-  // Difyから問題を生成
-  async function fetchQuestionFromDify() {
-    try {
-      const response = await fetch(DIFY_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${DIFY_API_KEY}`
-        },
-        body: JSON.stringify({
-          inputs: { current_lv: devValue, target_school: "早慶", user_status: "部活後のバスの中" },
-          response_mode: "blocking",
-          user: "daughter_user"
-        })
-      });
-      const result = await response.json();
-      return JSON.parse(result.data.outputs.answer);
-    } catch (e) {
-      alert("AIとの通信に失敗しました。Dify(localhost)が動いているか確認してください。");
-      return null;
-    }
-  }
+        try {
+            const response = await fetch(DIFY_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${DIFY_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    inputs: {}, // 入力変数が必要な場合はここに追加
+                    response_mode: "blocking",
+                    user: "onjou-sama"
+                })
+            });
 
-  async function startGame() {
-    document.getElementById('startScreen').style.display = 'none';
-    const firstQ = await fetchQuestionFromDify();
-    if(firstQ) {
-      currentQuestions = [firstQ];
-      createCard(0);
-      prepareNextQuestion();
-    }
-  }
+            const data = await response.json();
+            
+            if (data.outputs && data.outputs.text) {
+                // Difyの「終了」ノードの変数名が text の場合
+                resDiv.innerText = data.outputs.text;
+            } else if (data.outputs) {
+                // 変数名が違う場合の予備対応（最初の出力を取る）
+                const firstKey = Object.keys(data.outputs)[0];
+                resDiv.innerText = data.outputs[firstKey];
+            } else {
+                resDiv.innerText = "エラー: AIからの返答が空でした。Difyの「終了」ノードを確認してください。";
+            }
 
-  async function prepareNextQuestion() {
-    nextQueuingData = await fetchQuestionFromDify();
-  }
-
-  function createCard(index) {
-    const container = document.getElementById('cardContainer');
-    container.innerHTML = "";
-    const q = currentQuestions[index];
-    const card = document.createElement('div');
-    card.className = "quiz-card card-active";
-    
-    let html = `<div class="question-box">${q.question}</div><div class="btn-group">`;
-    q.options.forEach((opt, i) => {
-      html += `<button class="btn" onclick="checkAnswer('${opt}', '${q.answer}', this)">${opt}</button>`;
+        } catch (error) {
+            console.error(error);
+            resDiv.innerText = "通信エラー: クラウドとの接続に失敗しました。APIキーを確認してください。";
+        } finally {
+            btn.disabled = false;
+        }
     });
-    html += `</div>`;
-    card.innerHTML = html;
-    container.appendChild(card);
-    isAnswering = false;
-  }
-
-  function checkAnswer(selected, correct, btn) {
-    if(isAnswering) return;
-    isAnswering = true;
-    const isCorrect = (selected === correct);
-    const overlay = document.getElementById('expOverlay');
-    
-    btn.style.background = isCorrect ? "#00f2ea" : "#ff0055";
-    document.getElementById('expResult').innerText = isCorrect ? "✨ CORRECT!" : "😢 MISS...";
-    document.getElementById('expContent').innerText = currentQuestions[currentIndex].commentary;
-    
-    if(isCorrect) devValue += 0.5;
-    document.getElementById('devVal').innerText = "Lv." + devValue.toFixed(1);
-    
-    setTimeout(() => { overlay.classList.add('show'); }, 300);
-  }
-
-  function nextQuestionAnimation() {
-    document.getElementById('expOverlay').classList.remove('show');
-    const currentCard = document.querySelector('.card-active');
-    currentCard.classList.add('card-fly-up');
-
-    setTimeout(() => {
-      if (nextQueuingData) {
-        currentQuestions.push(nextQueuingData);
-        currentIndex++;
-        createCard(currentIndex);
-        nextQueuingData = null;
-        prepareNextQuestion();
-      }
-    }, 300);
-  }
 </script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
