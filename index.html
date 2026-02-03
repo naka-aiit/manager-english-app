@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Soccer Manager Final</title><style>
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Final Rev</title><style>
   :root { --neon: #00f2ea; --berry: #ff0055; --bg: #050505; }
   body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
   #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
@@ -6,27 +6,22 @@
   #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); width: 100%; z-index: 100; box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; }
   .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(0,0,0,0.3); }
   .level-box { font-weight: 900; font-size: 1.4rem; color: #fff; text-shadow: 0 0 10px var(--neon); font-style: italic; }
-  #comboContainer { position: absolute; top: 15%; width: 100%; text-align: center; pointer-events: none; z-index: 5; opacity: 0; transform: scale(0.5); transition: 0.2s; }
-  #comboNum { font-size: 4rem; font-weight: 900; color: var(--berry); text-shadow: 0 0 20px var(--berry); }
-  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; position: relative; z-index: 10; }
+  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; position: relative; z-index: 10; text-align: center; }
   .word-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; color: var(--neon); font-style: italic; }
-  .question-box { font-size: 1.2rem; line-height: 1.6; text-align: center; margin-bottom: 30px; }
+  .question-box { font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px; }
   .btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; border: none; }
   .btn:active { transform: scale(0.96); background: var(--neon); color: #000; }
   #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 80%; background: #0a0a10; border-top: 4px solid var(--neon); transform: translateY(110%); transition: 0.4s; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; z-index: 200; border-radius: 30px 30px 0 0; }
   #expOverlay.active { transform: translateY(0); }
-  .exp-result { font-size: 2.2rem; font-weight: 900; text-align: center; margin-bottom: 15px; }
-  .next-btn { background: var(--neon); color: #000; font-weight: 900; text-align: center; padding: 18px; border-radius: 50px; cursor: pointer; margin-top: auto; }
   #startScreen { position: absolute; inset:0; background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; }
   .title-logo { font-size: 4.5rem; font-weight: 950; font-style: italic; background: linear-gradient(to right, var(--neon), var(--berry)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 </style></head><body>
 
-<audio id="bgm" loop></audio>
+<audio id="bgm"></audio>
 
-<div id="appScreen">
+<div id="appScreen" onclick="resumeAudioContext()">
   <div id="feverEffect"></div>
-  <div id="comboContainer"><div id="comboNum">0</div><div style="color:white; font-weight:bold;">COMBO!</div></div>
   <div id="timerBar"></div>
   <div class="header">
     <div style="display:flex; align-items:center; gap:15px;">
@@ -38,7 +33,7 @@
   <div id="quizContent"></div>
   <div id="expOverlay">
     <div id="expContent" style="flex:1; overflow-y:auto;"></div>
-    <div class="next-btn" onclick="fetchNewQuiz()">NEXT STAGE</div>
+    <div class="btn" onclick="fetchNewQuiz()" style="background:var(--neon); color:#000; margin-top: auto;">NEXT STAGE</div>
   </div>
   <div id="startScreen">
     <div class="title-logo">GAP<br>STUDY</div>
@@ -53,7 +48,29 @@
   let devLevel = parseFloat(localStorage.getItem('userLv')) || 50.0;
   let currentQuiz = null;
   let timerInterval = null;
-  let combo = 0;
+  let isMuted = false;
+
+  const bgm = document.getElementById('bgm');
+  
+  // 音楽が終わったらランダムに次を再生
+  bgm.onended = () => playRandomBGM();
+
+  function resumeAudioContext() {
+    if (bgm.paused && !isMuted && bgm.src) bgm.play();
+  }
+
+  function playRandomBGM() {
+    const tracks = ['1.mp3', '2.mp3', '3.mp3'];
+    bgm.src = tracks[Math.floor(Math.random() * tracks.length)];
+    bgm.volume = 0.3;
+    bgm.play().catch(e => console.log("再生制限"));
+  }
+
+  function toggleAudio() {
+    isMuted = !isMuted;
+    bgm.muted = isMuted;
+    document.getElementById('audioToggle').innerText = isMuted ? "🔇" : "🔊";
+  }
 
   function startGame() {
     document.getElementById('startScreen').style.display = 'none';
@@ -62,32 +79,16 @@
   }
 
   function backToTitle() {
-    const bgm = document.getElementById('bgm');
     bgm.pause();
     bgm.currentTime = 0;
     clearInterval(timerInterval);
     document.getElementById('startScreen').style.display = 'flex';
     document.getElementById('expOverlay').classList.remove('active');
-    combo = 0;
-    updateCombo();
-  }
-
-  function playRandomBGM() {
-    const bgm = document.getElementById('bgm');
-    const tracks = ['1.mp3', '2.mp3', '3.mp3'];
-    bgm.src = tracks[Math.floor(Math.random() * tracks.length)];
-    bgm.play().catch(e => console.log("Play blocked"));
-  }
-
-  function toggleAudio() {
-    const bgm = document.getElementById('bgm');
-    bgm.muted = !bgm.muted;
-    document.getElementById('audioToggle').innerText = bgm.muted ? "🔇" : "🔊";
   }
 
   async function fetchNewQuiz() {
     document.getElementById('expOverlay').classList.remove('active');
-    document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon)'>GENERATING...</div>";
+    document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon)'>分析中...</div>";
     
     try {
       const res = await fetch(DIFY_API_URL, {
@@ -97,13 +98,14 @@
       });
       const json = await res.json();
       
-      // JNakaさんの設定に合わせて 'text' 変数から直接取得
-      const rawText = json.data.outputs.text;
-
-      const jsonStart = rawText.indexOf("{");
-      const jsonEnd = rawText.lastIndexOf("}");
-      const parsed = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+      // text箱から探し出す
+      let rawText = json.data.outputs.text || "";
+      let jsonStart = rawText.indexOf("{");
+      let jsonEnd = rawText.lastIndexOf("}");
       
+      if (jsonStart === -1) throw new Error("JSONなし");
+      
+      const parsed = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
       currentQuiz = {
         question: parsed.question,
         options: parsed.options.slice(0, 3),
@@ -112,8 +114,8 @@
       };
       renderQuiz();
     } catch (e) {
-      document.getElementById('quizContent').innerHTML = "<div style='color:var(--berry)'>RETRYING...</div>";
-      setTimeout(fetchNewQuiz, 2000);
+      document.getElementById('quizContent').innerHTML = "<div style='color:var(--berry)'>読み込み中...</div>";
+      setTimeout(fetchNewQuiz, 1500);
     }
   }
 
@@ -139,27 +141,19 @@
     }, 100);
   }
 
-  function checkAnswer(idx, btn) {
+  function checkAnswer(idx) {
     clearInterval(timerInterval);
     const isCorrect = (idx === currentQuiz.correct_index);
-    if (isCorrect) { combo++; devLevel += 0.5; } else { combo = 0; devLevel = Math.max(30, devLevel - 0.3); }
+    if (isCorrect) devLevel += 0.5; else devLevel = Math.max(30, devLevel - 0.3);
     
-    updateCombo();
     document.getElementById('devValDisplay').innerText = "Lv." + devLevel.toFixed(1);
     localStorage.setItem('userLv', devLevel);
     
     document.getElementById('expContent').innerHTML = `
-      <div class="exp-result" style="color:${isCorrect ? 'var(--neon)' : 'var(--berry)'}">${isCorrect ? 'PERFECT!' : 'MISS!'}</div>
-      <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:15px; margin-bottom:20px; font-weight:bold;">正解: ${currentQuiz.options[currentQuiz.correct_index]}</div>
+      <div style="font-size:2.2rem; text-align:center; color:${isCorrect ? 'var(--neon)' : 'var(--berry)'}">${isCorrect ? 'PERFECT!' : 'MISS!'}</div>
+      <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:15px; margin:20px 0; font-weight:bold; text-align:center;">正解: ${currentQuiz.options[currentQuiz.correct_index]}</div>
       <div style="line-height:1.7; color:#ccc;">${currentQuiz.explanation}</div>
     `;
     document.getElementById('expOverlay').classList.add('active');
-  }
-
-  function updateCombo() {
-    const cBox = document.getElementById('comboContainer');
-    document.getElementById('comboNum').innerText = combo;
-    cBox.style.opacity = combo >= 2 ? "1" : "0";
-    document.getElementById('feverEffect').style.opacity = combo >= 5 ? "1" : "0";
   }
 </script></body></html>
