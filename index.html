@@ -1,13 +1,13 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>GAP STUDY - Soccer Manager v1.2</title><style>
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>GAP STUDY - Soccer Final</title><style>
   :root { --neon: #00f2ea; --berry: #ff0055; --bg: #050505; }
   body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
   #appScreen { width: 100%; max-width: 420px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
-  #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); width: 100%; z-index: 100; box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; }
+  #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); width: 100%; z-index: 1000; box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; }
   .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
   .level-box { font-weight: 900; font-size: 1.5rem; color: #fff; text-shadow: 0 0 15px var(--neon); font-style: italic; }
   #quizArea { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; }
   .quiz-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 30px; width: 100%; box-sizing: border-box; backdrop-filter: blur(10px); }
-  .choice-btn { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 20px; border-radius: 18px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; margin: 8px 0; }
+  .choice-btn { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 18px; border-radius: 18px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; margin: 8px 0; border: 1px solid transparent; }
   .choice-btn:active { transform: scale(0.97); background: var(--neon); color: #000; }
   #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: rgba(5,5,10,0.98); border-top: 4px solid var(--neon); transform: translateY(110%); transition: 0.4s; padding: 30px; box-sizing: border-box; z-index: 2000; border-radius: 40px 40px 0 0; display: flex; flex-direction: column; }
   #expOverlay.active { transform: translateY(0); }
@@ -19,7 +19,8 @@
   <div id="quizArea">
     <div id="startScreen" style="position:absolute; inset:0; background:#000; z-index:3000; display:flex; flex-direction:column; justify-content:center; align-items:center;">
       <h1 style="font-size:4rem; font-style:italic; color:var(--neon); margin:0;">GAP STUDY</h1>
-      <button class="choice-btn" onclick="initApp()" style="width:200px; background:var(--neon); color:#000; margin-top:50px;">▶ START</button>
+      <p style="color:#555; letter-spacing:5px;">WORKFLOW EDITION</p>
+      <button class="choice-btn" onclick="initApp()" style="width:200px; background:var(--neon); color:#000; margin-top:50px; border:none;">▶ START</button>
     </div>
     <div id="mainContent" style="width:100%; display:none;">
       <h2 style="font-size:2.5rem; font-style:italic; color:var(--neon); margin-bottom:10px;">QUIZ</h2>
@@ -29,13 +30,14 @@
   <div id="expOverlay">
     <h2 id="resHeader" style="font-size:2.5rem; text-align:center; margin:0;"></h2>
     <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:15px; margin:15px 0;">
-      <div style="color:var(--neon); font-size:0.9rem;">Correct:</div>
+      <div style="color:var(--neon); font-size:0.9rem; font-weight:bold;">正解:</div>
       <div id="correctText" style="font-size:1.1rem; font-weight:bold;"></div>
     </div>
     <div id="adviceText" style="line-height:1.6; color:#ccc; font-size:0.95rem; flex:1; overflow-y:auto;"></div>
-    <button class="choice-btn" onclick="fetchNewQuiz()" style="background:var(--neon); color:#000; margin-top:10px;">NEXT QUIZ</button>
+    <button class="choice-btn" onclick="fetchNewQuiz()" style="background:var(--neon); color:#000; margin-top:10px; border:none;">NEXT QUIZ</button>
   </div>
 </div><script>
+  // --- Dify設定 ---
   const DIFY_API_KEY = "app-vxVUBvLVxHB7AtCFPpSSzwFX";
   const DIFY_API_URL = "https://api.dify.ai/v1/workflows/run";
 
@@ -58,35 +60,41 @@
     try {
       const res = await fetch(DIFY_API_URL, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${DIFY_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          inputs: { "level": devLevel.toFixed(1) },
-          response_mode: "blocking",
-          user: "onjou-sama"
-        })
+        headers: { "Authorization": "Bearer " + DIFY_API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ inputs: { "level": devLevel.toFixed(1) }, response_mode: "blocking", user: "student_001" })
       });
 
-      const jsonResponse = await res.json();
-      console.log("Raw Response:", jsonResponse);
+      const json = await res.json();
+      console.log("Dify Response:", json);
 
-      // マニュアルに基づき data.outputs を正確に抽出
-      const rawText = jsonResponse.data.outputs.text || jsonResponse.data.outputs.answer || JSON.stringify(jsonResponse.data.outputs);
+      // --- 徹底的なデータ抽出ロジック ---
+      let rawText = "";
+      if (json.data && json.data.outputs) {
+          // Workflowの出力が text か answer か JSONそのものか判定
+          rawText = json.data.outputs.text || json.data.outputs.answer || JSON.stringify(json.data.outputs);
+      }
 
       const jsonStart = rawText.indexOf("{");
       const jsonEnd = rawText.lastIndexOf("}");
-      const parsed = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
       
-      currentQuiz = {
-        question: parsed.question,
-        options: parsed.options.slice(0, 3), // 常に3つに制限
-        correct_index: parsed.correct_index,
-        explanation: parsed.explanation
-      };
-      
-      renderQuiz();
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        const parsed = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+        
+        // 鉄壁の整形：選択肢がいくつあっても最初の3つだけを使い、indexも安全に処理する
+        currentQuiz = {
+          question: parsed.question || "問題の取得に失敗しました",
+          options: (parsed.options || ["A", "B", "C"]).slice(0, 3),
+          correct_index: Math.min(parseInt(parsed.correct_index || 0), 2),
+          explanation: parsed.explanation || "マネージャーもびっくり！解説が見当たらないよ。"
+        };
+        renderQuiz();
+      } else {
+        throw new Error("JSONが見つかりませんでした");
+      }
     } catch (e) {
-      console.error("Fetch Error:", e);
-      alert("通信エラーが発生しました。リロードしてスタートしてください。");
+      console.error(e);
+      document.getElementById('qText').innerHTML = "⚽ 通信エラーが発生しました。<br>Dify側で『公開』が完了しているか確認してください。";
+      document.getElementById('mainContent').style.opacity = '1';
     }
   }
 
