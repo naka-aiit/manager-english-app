@@ -1,126 +1,91 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Soccer Final</title><style>
-  :root { --neon: #00f2ea; --berry: #ff0055; --gold: #ffd700; --bg: #000; }
-  body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; height: 100vh; overflow: hidden; touch-action: none; }
-  #appScreen { width: 100%; max-width: 400px; height: 100%; margin: 0 auto; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; display: flex; flex-direction: column; overflow: hidden; }
-  #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); width: 100%; z-index: 100; box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; }
-  .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-  .level-box { font-weight: 900; font-size: 1.4rem; color: #fff; font-style: italic; text-shadow: 0 0 10px var(--neon); }
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY ELITE</title><style>
+  :root { --neon: #00f2ea; --berry: #ff0055; --bg: #000; }
+  body { background-color: #000; color: white; font-family: sans-serif; margin: 0; height: 100vh; overflow: hidden; touch-action: none; }
+  #appScreen { width: 100%; max-width: 400px; height: 100%; margin: 0 auto; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; display: flex; flex-direction: column; }
+  #timerBar { position: absolute; top: 0; left: 0; height: 5px; background: var(--neon); width: 100%; z-index: 100; transition: width 0.1s linear; }
+  .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; }
   #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 25px; text-align: center; }
-  .question-box { font-size: 1.3rem; line-height: 1.6; margin-bottom: 35px; font-weight: 800; min-height: 80px; }
-  .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; }
-  .btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 22px; border-radius: 18px; font-size: 1.1rem; font-weight: 900; cursor: pointer; transition: 0.2s; border: none; }
-  .btn:active { background: var(--neon); color: #000; transform: scale(0.95); }
-  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: rgba(0,0,0,0.95); border-top: 4px solid var(--neon); transform: translateY(110%); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 30px; box-sizing: border-box; z-index: 200; border-radius: 40px 40px 0 0; display: flex; flex-direction: column; }
+  .btn-group { display: flex; flex-direction: column; gap: 15px; }
+  .btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 22px; border-radius: 20px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border:none; }
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: rgba(0,0,0,0.98); border-top: 4px solid var(--neon); transform: translateY(110%); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 30px; box-sizing: border-box; z-index: 200; border-radius: 40px 40px 0 0; display: flex; flex-direction: column; }
   #expOverlay.active { transform: translateY(0); }
-  .tiktok-phrase { font-size: 1.5rem; font-weight: 900; color: #fff; text-shadow: 2px 2px var(--berry), -2px -2px var(--neon); line-height: 1.3; margin: 20px 0; font-style: italic; text-align: center; }
-  .gachi-exp { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; font-size: 0.95rem; color: #ccc; line-height: 1.6; white-space: pre-wrap; overflow-y: auto; }
 </style></head><body>
 
-<audio id="bgm" loop></audio>
-<div id="appScreen" onclick="if(bgm.paused && bgm.src) bgm.play()">
+<audio id="bgm" loop preload="auto"></audio>
+<div id="appScreen" onclick="initMusic()">
   <div id="timerBar"></div>
   <div class="header">
-    <div onclick="location.reload()" style="font-size:1.5rem; cursor:pointer;">🏠</div>
-    <div class="level-box" id="devValDisplay">Lv.50.0</div>
-    <div onclick="bgm.muted=!bgm.muted" style="font-size:1.5rem; cursor:pointer;">🔊</div>
+    <div onclick="location.reload()">🏠</div>
+    <div id="lvDisp" style="font-weight:900; font-style:italic; color:var(--neon);">Lv.50.0</div>
+    <div onclick="bgm.muted=!bgm.muted">🔊</div>
   </div>
-  <div id="quizContent"></div>
+  <div id="quizContent">画面タップで開始</div>
   <div id="expOverlay">
-    <div style="width:40px; height:5px; background:#444; border-radius:3px; margin:-10px auto 20px;"></div>
     <div id="expResult" style="font-size:3rem; font-weight:900; text-align:center;"></div>
-    <div id="tiktokArea" class="tiktok-phrase"></div>
-    <div id="gachiArea" class="gachi-exp"></div>
-    <div style="background:var(--neon); color:#000; padding:20px; border-radius:50px; font-weight:900; text-align:center; margin-top:auto; cursor:pointer;" onclick="fetchNewQuiz()">NEXT GAP ▲</div>
-  </div>
-  <div id="startScreen" style="position:absolute; inset:0; background:#000; z-index:300; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-    <h1 style="font-size:4rem; font-style:italic; background:linear-gradient(45deg, var(--neon), var(--berry)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">GAP STUDY</h1>
-    <button class="btn" onclick="startGame()" style="width:240px; background:var(--neon); color:#000; border:none; margin-top:50px;">SESSION START</button>
+    <div id="ansBadge" style="background:var(--neon); color:#000; padding:12px; border-radius:15px; text-align:center; font-weight:900; margin:15px 0;"></div>
+    <div id="expBody" style="line-height:1.8; color:#eee; white-space:pre-wrap; overflow-y:auto; flex:1; font-size:1.05rem;"></div>
+    <div style="background:var(--neon); color:#000; padding:20px; border-radius:50px; font-weight:900; text-align:center; margin-top:20px; cursor:pointer;" onclick="fetchQuiz()">NEXT GAP</div>
   </div>
 </div>
 
 <script>
   const DIFY_API_KEY = "app-vxVUBvLVxHB7AtCFPpSSzwFX";
-  const DIFY_API_URL = "https://api.dify.ai/v1/workflows/run";
   let devLevel = parseFloat(localStorage.getItem('userLv')) || 50.0;
   let currentQuiz = null;
+  let timerInterval = null;
   const bgm = document.getElementById('bgm');
 
-  function startGame() {
-    document.getElementById('startScreen').style.display = 'none';
-    const tracks = ['1.mp3', '2.mp3', '3.mp3'];
-    bgm.src = tracks[Math.floor(Math.random() * tracks.length)];
-    bgm.play().catch(()=>{});
-    fetchNewQuiz();
-  }
-
-  async function fetchNewQuiz() {
-    document.getElementById('expOverlay').classList.remove('active');
-    document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon); font-weight:900;'>ANALYZING GAP...</div>";
-    
-    try {
-      const spice = Math.floor(Math.random() * 10000);
-      const res = await fetch(DIFY_API_URL, {
-        method: "POST",
-        headers: { "Authorization": "Bearer " + DIFY_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          inputs: { "level": devLevel.toFixed(1), "seed": spice }, 
-          response_mode: "blocking", 
-          user: "user_" + spice 
-        })
-      });
-      const json = await res.json();
-      
-      // JSON抽出ロジックの強化
-      let rawText = json.data.outputs.text || "";
-      let cleanJSON = rawText.substring(rawText.indexOf("{"), rawText.lastIndexOf("}") + 1);
-      let parsed = JSON.parse(cleanJSON);
-
-      // 万が一AIがoptionsの中身をサボった時のための安全装置
-      if (!parsed.options || parsed.options.length < 3 || parsed.options[0].includes("選択肢")) {
-          throw new Error("Invalid Content");
-      }
-
-      currentQuiz = parsed;
-      renderQuiz();
-    } catch (e) {
-      console.error(e);
-      document.getElementById('quizContent').innerHTML = "<div style='color:var(--berry)'>RETRYING...</div>";
-      setTimeout(fetchNewQuiz, 1500);
+  function initMusic() {
+    if(!bgm.src) {
+      bgm.src = '1.mp3';
+      bgm.play().catch(()=>{});
+      fetchQuiz();
     }
   }
 
-  function renderQuiz() {
-    document.getElementById('quizContent').innerHTML = `
-      <div class="question-box">${currentQuiz.question}</div>
-      <div class="btn-group">${currentQuiz.options.map((opt, i) => `<button class="btn" onclick="checkAnswer(${i})">${opt}</button>`).join('')}</div>
-    `;
-    startTimer(15);
+  async function fetchQuiz() {
+    document.getElementById('expOverlay').classList.remove('active');
+    document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon); font-weight:900;'>GAP ANALYZING...</div>";
+    try {
+      const res = await fetch("https://api.dify.ai/v1/workflows/run", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + DIFY_API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ inputs: { "level": devLevel.toFixed(1) }, response_mode: "blocking", user: "student_001" })
+      });
+      const data = await res.json();
+      const raw = data.data.outputs.text;
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      currentQuiz = JSON.parse(jsonMatch[0]);
+      
+      document.getElementById('quizContent').innerHTML = `
+        <div style="font-size:1.3rem; font-weight:800; line-height:1.6; margin-bottom:35px;">${currentQuiz.question}</div>
+        <div class="btn-group">${currentQuiz.options.slice(0,3).map((o, i) => `<button class="btn" onclick="check(${i})">${o}</button>`).join('')}</div>
+      `;
+      startTimer(15);
+    } catch (e) { setTimeout(fetchQuiz, 1000); }
   }
 
   function startTimer(s) {
-    const bar = document.getElementById('timerBar');
     let timeLeft = 100;
-    const interval = setInterval(() => {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
       timeLeft -= 100 / (s * 10);
-      bar.style.width = timeLeft + "%";
-      if (timeLeft <= 0 || currentQuiz == null) clearInterval(interval);
-      if (timeLeft <= 0) checkAnswer(-1);
+      document.getElementById('timerBar').style.width = timeLeft + "%";
+      if (timeLeft <= 0) check(-1);
     }, 100);
   }
 
-  function checkAnswer(idx) {
-    if (!currentQuiz) return;
+  function check(idx) {
+    clearInterval(timerInterval);
+    if(!currentQuiz) return;
     const isCorrect = (idx === currentQuiz.correct_index);
-    if (isCorrect) devLevel += 0.5; else devLevel = Math.max(30, devLevel - 0.3);
-    
-    document.getElementById('devValDisplay').innerText = "Lv." + devLevel.toFixed(1);
+    devLevel += isCorrect ? 0.5 : -0.3;
+    document.getElementById('lvDisp').innerText = "Lv." + devLevel.toFixed(1);
     localStorage.setItem('userLv', devLevel);
-
-    const parts = currentQuiz.explanation.split('\n\n');
     document.getElementById('expResult').innerText = isCorrect ? 'GOAL!' : 'MISS!';
     document.getElementById('expResult').style.color = isCorrect ? 'var(--neon)' : 'var(--berry)';
-    document.getElementById('tiktokArea').innerText = parts[1] || "切り替えてこ？";
-    document.getElementById('gachiArea').innerText = parts[0] || "解説準備中...";
+    document.getElementById('ansBadge').innerText = "正解: " + currentQuiz.options[currentQuiz.correct_index];
+    document.getElementById('expBody').innerText = currentQuiz.explanation;
     document.getElementById('expOverlay').classList.add('active');
     currentQuiz = null;
   }
