@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Final Rev</title><style>
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Soccer Manager Edition</title><style>
   :root { --neon: #00f2ea; --berry: #ff0055; --bg: #050505; }
   body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
   #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
@@ -6,9 +6,11 @@
   #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); width: 100%; z-index: 100; box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; }
   .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(0,0,0,0.3); }
   .level-box { font-weight: 900; font-size: 1.4rem; color: #fff; text-shadow: 0 0 10px var(--neon); font-style: italic; }
+  #comboContainer { position: absolute; top: 15%; width: 100%; text-align: center; pointer-events: none; z-index: 5; opacity: 0; transform: scale(0.5); transition: 0.2s; }
+  #comboNum { font-size: 4rem; font-weight: 900; color: var(--berry); text-shadow: 0 0 20px var(--berry); }
   #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; position: relative; z-index: 10; text-align: center; }
   .word-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; color: var(--neon); font-style: italic; }
-  .question-box { font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px; }
+  .question-box { font-size: 1.2rem; line-height: 1.6; text-align: center; margin-bottom: 30px; }
   .btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
   .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; border: none; }
   .btn:active { transform: scale(0.96); background: var(--neon); color: #000; }
@@ -22,6 +24,7 @@
 
 <div id="appScreen" onclick="resumeAudioContext()">
   <div id="feverEffect"></div>
+  <div id="comboContainer"><div id="comboNum">0</div><div style="color:white; font-weight:bold;">COMBO!</div></div>
   <div id="timerBar"></div>
   <div class="header">
     <div style="display:flex; align-items:center; gap:15px;">
@@ -48,11 +51,12 @@
   let devLevel = parseFloat(localStorage.getItem('userLv')) || 50.0;
   let currentQuiz = null;
   let timerInterval = null;
+  let combo = 0;
   let isMuted = false;
 
   const bgm = document.getElementById('bgm');
   
-  // 音楽が終わったらランダムに次を再生
+  // ★音楽が終わったら自動で次のランダム曲を再生
   bgm.onended = () => playRandomBGM();
 
   function resumeAudioContext() {
@@ -61,7 +65,13 @@
 
   function playRandomBGM() {
     const tracks = ['1.mp3', '2.mp3', '3.mp3'];
-    bgm.src = tracks[Math.floor(Math.random() * tracks.length)];
+    const currentTrack = bgm.src.split('/').pop();
+    let nextTrack;
+    do {
+      nextTrack = tracks[Math.floor(Math.random() * tracks.length)];
+    } while (nextTrack === currentTrack && tracks.length > 1);
+    
+    bgm.src = nextTrack;
     bgm.volume = 0.3;
     bgm.play().catch(e => console.log("再生制限"));
   }
@@ -84,6 +94,8 @@
     clearInterval(timerInterval);
     document.getElementById('startScreen').style.display = 'flex';
     document.getElementById('expOverlay').classList.remove('active');
+    combo = 0;
+    updateCombo();
   }
 
   async function fetchNewQuiz() {
@@ -98,7 +110,6 @@
       });
       const json = await res.json();
       
-      // text箱から探し出す
       let rawText = json.data.outputs.text || "";
       let jsonStart = rawText.indexOf("{");
       let jsonEnd = rawText.lastIndexOf("}");
@@ -114,7 +125,7 @@
       };
       renderQuiz();
     } catch (e) {
-      document.getElementById('quizContent').innerHTML = "<div style='color:var(--berry)'>読み込み中...</div>";
+      document.getElementById('quizContent').innerHTML = "<div style='color:var(--berry)'>リトライ中...</div>";
       setTimeout(fetchNewQuiz, 1500);
     }
   }
@@ -144,8 +155,15 @@
   function checkAnswer(idx) {
     clearInterval(timerInterval);
     const isCorrect = (idx === currentQuiz.correct_index);
-    if (isCorrect) devLevel += 0.5; else devLevel = Math.max(30, devLevel - 0.3);
+    if (isCorrect) {
+      combo++;
+      devLevel += 0.5;
+    } else {
+      combo = 0;
+      devLevel = Math.max(30, devLevel - 0.3);
+    }
     
+    updateCombo();
     document.getElementById('devValDisplay').innerText = "Lv." + devLevel.toFixed(1);
     localStorage.setItem('userLv', devLevel);
     
@@ -155,5 +173,12 @@
       <div style="line-height:1.7; color:#ccc;">${currentQuiz.explanation}</div>
     `;
     document.getElementById('expOverlay').classList.add('active');
+  }
+
+  function updateCombo() {
+    const cBox = document.getElementById('comboContainer');
+    document.getElementById('comboNum').innerText = combo;
+    cBox.style.opacity = combo >= 2 ? "1" : "0";
+    document.getElementById('feverEffect').style.opacity = combo >= 5 ? "1" : "0";
   }
 </script></body></html>
