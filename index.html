@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Soccer Manager v2.0</title><style>
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Pro v2.1</title><style>
   :root { --neon: #00f2ea; --berry: #ff0055; --gold: #ffd700; --bg: #050505; }
   body { background-color: var(--bg); color: white; font-family: "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-  #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,1); }
+  #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
   #feverEffect { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(45deg, rgba(255,0,150,0.1), rgba(0,242,234,0.1)); opacity: 0; pointer-events: none; z-index: 1; transition: opacity 0.3s; }
   #timerContainer { width: 100%; height: 6px; background: #222; position: absolute; top: 0; left: 0; z-index: 100; }
   #timerBar { width: 100%; height: 100%; background: var(--neon); transition: width 0.1s linear; box-shadow: 0 0 10px var(--neon); }
@@ -17,7 +17,7 @@
   .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; }
   .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 20px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; text-align: center; }
   .btn:active { transform: scale(0.96); background: var(--neon); color: #000; }
-  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 80%; background: rgba(10,10,15,0.98); border-top: 4px solid var(--neon); border-radius: 30px 30px 0 0; transform: translateY(110%); transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; z-index: 200; }
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 80%; background: rgba(10,10,15,0.98); border-top: 4px solid var(--neon); border-radius: 30px 30px 0 0; transform: translateY(110%); transition: 0.4s; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; z-index: 200; }
   #expOverlay.show { transform: translateY(0); }
   .exp-result { font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; text-align: center; font-style: italic; }
   .exp-meaning { font-size: 1.2rem; color: #fff; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; text-align: center; border-left: 5px solid var(--neon); }
@@ -44,7 +44,7 @@
   <div id="expOverlay">
     <div style="width:50px; height:6px; background:rgba(255,255,255,0.2); border-radius:3px; margin:-15px auto 20px;"></div>
     <div id="expContent"></div>
-    <div class="next-btn" onclick="nextQuestion()">NEXT LEVEL</div>
+    <div class="next-btn" onclick="fetchNewQuiz()">NEXT STAGE</div>
   </div>
   <div id="startScreen">
     <div class="title-logo">GAP<br>STUDY</div>
@@ -64,7 +64,7 @@
 
   function startGame() {
     document.getElementById('startScreen').style.display = 'none';
-    playBGM();
+    playRandomBGM(); // ランダムBGM再生
     fetchNewQuiz();
   }
 
@@ -76,10 +76,14 @@
     updateCombo();
   }
 
-  function playBGM() {
+  // ★BGMをランダムにする関数
+  function playRandomBGM() {
     const bgm = document.getElementById('bgm');
-    bgm.src = "1.mp3"; 
-    bgm.play().catch(()=>{});
+    const tracks = ['1.mp3', '2.mp3', '3.mp3'];
+    const selected = tracks[Math.floor(Math.random() * tracks.length)];
+    bgm.src = selected;
+    bgm.volume = 0.3;
+    bgm.play().catch(()=>{ console.log("再生にはユーザー操作が必要です"); });
   }
 
   function toggleAudio() {
@@ -90,7 +94,8 @@
 
   async function fetchNewQuiz() {
     document.getElementById('expOverlay').classList.remove('show');
-    document.getElementById('quizContent').style.opacity = '0.3';
+    document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon); font-weight:bold;'>GENERATING NEXT GAP...</div>";
+    document.getElementById('quizContent').style.opacity = '0.5';
     
     try {
       const res = await fetch(DIFY_API_URL, {
@@ -99,24 +104,36 @@
         body: JSON.stringify({ inputs: { "level": devLevel.toFixed(1) }, response_mode: "blocking", user: "student_001" })
       });
       const json = await res.json();
-      let raw = json.data.outputs.text || json.data.outputs.answer;
-      const cleanJSON = raw.substring(raw.indexOf("{"), raw.lastIndexOf("}") + 1);
+      
+      // データ取得の安全策を強化
+      let raw = "";
+      if(json.data && json.data.outputs) {
+          raw = json.data.outputs.text || json.data.outputs.answer || JSON.stringify(json.data.outputs);
+      }
+
+      const jsonStart = raw.indexOf("{");
+      const jsonEnd = raw.lastIndexOf("}");
+      const cleanJSON = raw.substring(jsonStart, jsonEnd + 1);
       const parsed = JSON.parse(cleanJSON);
       
       currentQuiz = {
         question: parsed.question,
-        options: parsed.options.slice(0, 3),
-        correct_index: parseInt(parsed.correct_index),
+        options: (parsed.options || []).slice(0, 3),
+        correct_index: parseInt(parsed.correct_index || 0),
         explanation: parsed.explanation
       };
       renderQuiz();
-    } catch (e) { setTimeout(fetchNewQuiz, 1000); }
+    } catch (e) { 
+      console.error(e);
+      document.getElementById('quizContent').innerHTML = "<div style='color:var(--berry);'>CONNECTION ERROR. RETRYING...</div>";
+      setTimeout(fetchNewQuiz, 2000); 
+    }
   }
 
   function renderQuiz() {
     document.getElementById('quizContent').style.opacity = '1';
     document.getElementById('quizContent').innerHTML = `
-      <h2 class="word-title">QUIZ</h2>
+      <h2 class="word-title">GAP QUIZ</h2>
       <div class="question-box">${currentQuiz.question}</div>
       <div class="btn-group">
         ${currentQuiz.options.map((opt, i) => `<button class="btn" onclick="checkAnswer(${i}, this)">${opt}</button>`).join('')}
@@ -176,16 +193,12 @@
     const content = document.getElementById('expContent');
     content.innerHTML = `
       <div class="exp-result" style="color:${isCorrect ? 'var(--neon)' : 'var(--berry)'}">
-        ${isCorrect ? '✨ PERFECT!' : '😢 OOPS...'}
+        ${isCorrect ? '✨ PERFECT!' : '😢 MISS!'}
       </div>
-      <div class="exp-meaning">正解: ${currentQuiz.options[currentQuiz.correct_index]}</div>
-      <div style="color:var(--neon); font-weight:bold; margin-bottom:10px;">💡 Manager's Advice:</div>
+      <div class="exp-meaning">Correct: ${currentQuiz.options[currentQuiz.correct_index]}</div>
+      <div style="color:var(--neon); font-weight:bold; margin-bottom:10px;">💡 Manager's Note:</div>
       <div class="exp-body">${currentQuiz.explanation}</div>
     `;
     document.getElementById('expOverlay').classList.add('show');
-  }
-
-  function nextQuestion() {
-    fetchNewQuiz();
   }
 </script></body></html>
