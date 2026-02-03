@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY ELITE</title><style>
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY ELITE v4.0</title><style>
   :root { --neon: #00f2ea; --berry: #ff0055; --bg: #000; }
   body { background-color: #000; color: white; font-family: sans-serif; margin: 0; height: 100vh; overflow: hidden; touch-action: none; }
   #appScreen { width: 100%; max-width: 400px; height: 100%; margin: 0 auto; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; display: flex; flex-direction: column; }
@@ -26,9 +26,8 @@
     <div id="expResult" style="font-size:3rem; font-weight:900; text-align:center;"></div>
     <div id="ansBadge" style="background:var(--neon); color:#000; padding:12px; border-radius:15px; text-align:center; font-weight:900; margin:15px 0;"></div>
     <div id="expBody" style="line-height:1.8; color:#eee; white-space:pre-wrap; overflow-y:auto; flex:1; font-size:1.05rem;"></div>
-    <div style="background:var(--neon); color:#000; padding:20px; border-radius:50px; font-weight:900; text-align:center; margin-top:20px; cursor:pointer;" onclick="fetchQuiz()">NEXT GAP</div>
+    <div style="background:var(--neon); color:#000; padding:20px; border-radius:50px; font-weight:900; text-align:center; margin-top:20px; cursor:pointer;" onclick="changeTrackAndFetch()">NEXT GAP</div>
   </div>
-
   <div id="startScreen">
     <div class="title-logo">GAP<br>STUDY</div>
     <button class="btn" onclick="startGame()" style="width:240px; background:var(--neon); color:#000; border:none;">SESSION START</button>
@@ -42,12 +41,19 @@
   let timerInterval = null;
   const bgm = document.getElementById('bgm');
 
-  // 音楽の無限ランダムループ
-  bgm.onended = () => playBGM();
-  function playBGM() {
-    const tracks = ['1.mp3', '2.mp3', '3.mp3'];
-    bgm.src = tracks[Math.floor(Math.random() * tracks.length)];
-    bgm.play().catch(()=>{});
+  // ★BGMプレイリスト
+  const tracks = ['1.mp3', '2.mp3', '3.mp3'];
+  bgm.onended = () => playRandomTrack();
+
+  function playRandomTrack() {
+    const next = tracks[Math.floor(Math.random() * tracks.length)];
+    bgm.src = next;
+    bgm.play().catch(() => {});
+  }
+
+  function changeTrackAndFetch() {
+    playRandomTrack(); // NEXTのたびに曲を変える（不要なら消してOK）
+    fetchQuiz();
   }
 
   function toggleAudio() {
@@ -57,28 +63,32 @@
 
   function startGame() {
     document.getElementById('startScreen').style.display = 'none';
-    if (!bgm.src) playBGM();
+    playRandomTrack();
     fetchQuiz();
   }
 
   function backToHome() {
-    // 全ての状態をリセットしてスタート画面へ
     clearInterval(timerInterval);
     document.getElementById('expOverlay').classList.remove('active');
     document.getElementById('startScreen').style.display = 'flex';
     bgm.pause();
-    bgm.src = ""; // 曲もリセット
-    currentQuiz = null;
+    bgm.src = "";
   }
 
   async function fetchQuiz() {
     document.getElementById('expOverlay').classList.remove('active');
     document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon); font-weight:900;'>GAP ANALYZING...</div>";
     try {
+      // ★seed（乱数）を生成してDifyに送ることで出題の重複を防ぐ
+      const randomSeed = Math.floor(Math.random() * 1000000);
       const res = await fetch("https://api.dify.ai/v1/workflows/run", {
         method: "POST",
         headers: { "Authorization": "Bearer " + DIFY_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs: { "level": devLevel.toFixed(1) }, response_mode: "blocking", user: "student_001" })
+        body: JSON.stringify({ 
+          inputs: { "level": devLevel.toFixed(1), "seed": randomSeed }, 
+          response_mode: "blocking", 
+          user: "student_" + randomSeed 
+        })
       });
       const data = await res.json();
       const raw = data.data.outputs.text;
