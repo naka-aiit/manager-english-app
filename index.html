@@ -1,55 +1,49 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Pro v2.1</title><style>
-  :root { --neon: #00f2ea; --berry: #ff0055; --gold: #ffd700; --bg: #050505; }
-  body { background-color: var(--bg); color: white; font-family: "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Soccer Manager Final</title><style>
+  :root { --neon: #00f2ea; --berry: #ff0055; --bg: #050505; }
+  body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
   #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
-  #feverEffect { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(45deg, rgba(255,0,150,0.1), rgba(0,242,234,0.1)); opacity: 0; pointer-events: none; z-index: 1; transition: opacity 0.3s; }
-  #timerContainer { width: 100%; height: 6px; background: #222; position: absolute; top: 0; left: 0; z-index: 100; }
-  #timerBar { width: 100%; height: 100%; background: var(--neon); transition: width 0.1s linear; box-shadow: 0 0 10px var(--neon); }
-  .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(0,0,0,0.2); }
-  .header-left { display: flex; align-items: center; gap: 15px; }
-  .home-btn { font-size: 1.5rem; cursor: pointer; text-shadow: 0 0 5px #fff; }
+  #feverEffect { position: absolute; inset:0; background: linear-gradient(45deg, rgba(255,0,150,0.1), rgba(0,242,234,0.1)); opacity: 0; pointer-events: none; z-index: 1; transition: 0.3s; }
+  #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); width: 100%; z-index: 100; box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; }
+  .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(0,0,0,0.3); }
   .level-box { font-weight: 900; font-size: 1.4rem; color: #fff; text-shadow: 0 0 10px var(--neon); font-style: italic; }
-  #comboContainer { position: absolute; top: 15%; width: 100%; text-align: center; pointer-events: none; z-index: 5; opacity: 0; transform: scale(0.5); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-  #comboNum { font-size: 4rem; font-weight: 900; color: var(--berry); text-shadow: 2px 2px 0 #fff, 0 0 20px var(--berry); }
+  #comboContainer { position: absolute; top: 15%; width: 100%; text-align: center; pointer-events: none; z-index: 5; opacity: 0; transform: scale(0.5); transition: 0.2s; }
+  #comboNum { font-size: 4rem; font-weight: 900; color: var(--berry); text-shadow: 0 0 20px var(--berry); }
   #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; position: relative; z-index: 10; }
-  .word-title { font-size: 2.8rem; font-weight: 800; margin: 0 0 10px 0; text-align: center; color: var(--neon); font-style: italic; }
-  .question-box { font-size: 1.2rem; font-weight: 500; line-height: 1.6; text-align: center; margin-bottom: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-  .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; }
-  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 20px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; text-align: center; }
+  .word-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; color: var(--neon); font-style: italic; }
+  .question-box { font-size: 1.2rem; line-height: 1.6; text-align: center; margin-bottom: 30px; }
+  .btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
   .btn:active { transform: scale(0.96); background: var(--neon); color: #000; }
-  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 80%; background: rgba(10,10,15,0.98); border-top: 4px solid var(--neon); border-radius: 30px 30px 0 0; transform: translateY(110%); transition: 0.4s; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; z-index: 200; }
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 80%; background: #0a0a10; border-top: 4px solid var(--neon); transform: translateY(110%); transition: 0.4s; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; z-index: 200; border-radius: 30px 30px 0 0; }
   #expOverlay.show { transform: translateY(0); }
-  .exp-result { font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; text-align: center; font-style: italic; }
-  .exp-meaning { font-size: 1.2rem; color: #fff; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; text-align: center; border-left: 5px solid var(--neon); }
-  .exp-body { color: #ddd; font-size: 1.05rem; line-height: 1.8; flex: 1; overflow-y: auto; }
-  .next-btn { margin-top: 15px; background: var(--neon); color: #000; font-weight: 900; text-align: center; padding: 20px; border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px var(--neon); }
-  #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-  .title-logo { font-size: 4rem; font-weight: 950; font-style: italic; line-height: 0.9; background: linear-gradient(to right, var(--neon), var(--berry)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
-  .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
-  @keyframes shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(2px); } }
+  .exp-result { font-size: 2.2rem; font-weight: 900; text-align: center; margin-bottom: 15px; }
+  .exp-body { color: #ccc; line-height: 1.7; flex: 1; overflow-y: auto; }
+  .next-btn { background: var(--neon); color: #000; font-weight: 900; text-align: center; padding: 18px; border-radius: 50px; cursor: pointer; margin-top: 15px; }
+  #startScreen { position: absolute; inset:0; background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .title-logo { font-size: 4.5rem; font-weight: 950; font-style: italic; background: linear-gradient(to right, var(--neon), var(--berry)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 </style></head><body>
+
 <audio id="bgm" loop></audio>
+
 <div id="appScreen">
   <div id="feverEffect"></div>
-  <div id="comboContainer"><div id="comboNum">0</div><div style="color:white; font-weight:bold; letter-spacing:3px;">COMBO!</div></div>
-  <div id="timerContainer"><div id="timerBar"></div></div>
+  <div id="comboContainer"><div id="comboNum">0</div><div style="color:white; font-weight:bold;">COMBO!</div></div>
+  <div id="timerBar"></div>
   <div class="header">
-    <div class="header-left">
-      <div class="home-btn" onclick="backToTitle()">🏠</div>
+    <div style="display:flex; align-items:center; gap:15px;">
+      <div onclick="backToTitle()" style="font-size:1.5rem; cursor:pointer;">🏠</div>
       <div class="level-box" id="devValDisplay">Lv.50.0</div>
     </div>
-    <div style="font-size:1.5rem; cursor:pointer;" onclick="toggleAudio()" id="audioToggle">🔊</div>
+    <div onclick="toggleAudio()" id="audioToggle" style="font-size:1.5rem; cursor:pointer;">🔊</div>
   </div>
   <div id="quizContent"></div>
   <div id="expOverlay">
-    <div style="width:50px; height:6px; background:rgba(255,255,255,0.2); border-radius:3px; margin:-15px auto 20px;"></div>
     <div id="expContent"></div>
     <div class="next-btn" onclick="fetchNewQuiz()">NEXT STAGE</div>
   </div>
   <div id="startScreen">
     <div class="title-logo">GAP<br>STUDY</div>
-    <p style="color:#555; letter-spacing:5px; margin-bottom:50px;">PRO EDITION</p>
-    <button class="btn" onclick="startGame()" style="width:250px; background:var(--neon); color:#000; border:none; font-size:1.4rem;">▶ START SESSION</button>
+    <button class="btn" onclick="startGame()" style="width:240px; background:var(--neon); color:#000; margin-top:50px;">SESSION START</button>
   </div>
 </div>
 
@@ -64,11 +58,16 @@
 
   function startGame() {
     document.getElementById('startScreen').style.display = 'none';
-    playRandomBGM(); // ランダムBGM再生
+    playRandomBGM();
     fetchNewQuiz();
   }
 
   function backToTitle() {
+    // 音楽停止
+    const bgm = document.getElementById('bgm');
+    bgm.pause();
+    bgm.currentTime = 0;
+    
     clearInterval(timerInterval);
     document.getElementById('startScreen').style.display = 'flex';
     document.getElementById('expOverlay').classList.remove('show');
@@ -76,14 +75,11 @@
     updateCombo();
   }
 
-  // ★BGMをランダムにする関数
   function playRandomBGM() {
     const bgm = document.getElementById('bgm');
     const tracks = ['1.mp3', '2.mp3', '3.mp3'];
-    const selected = tracks[Math.floor(Math.random() * tracks.length)];
-    bgm.src = selected;
-    bgm.volume = 0.3;
-    bgm.play().catch(()=>{ console.log("再生にはユーザー操作が必要です"); });
+    bgm.src = tracks[Math.floor(Math.random() * tracks.length)];
+    bgm.play().catch(e => console.log("Play blocked"));
   }
 
   function toggleAudio() {
@@ -94,8 +90,7 @@
 
   async function fetchNewQuiz() {
     document.getElementById('expOverlay').classList.remove('show');
-    document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon); font-weight:bold;'>GENERATING NEXT GAP...</div>";
-    document.getElementById('quizContent').style.opacity = '0.5';
+    document.getElementById('quizContent').innerHTML = "GENERATING...";
     
     try {
       const res = await fetch(DIFY_API_URL, {
@@ -105,35 +100,31 @@
       });
       const json = await res.json();
       
-      // データ取得の安全策を強化
-      let raw = "";
-      if(json.data && json.data.outputs) {
-          raw = json.data.outputs.text || json.data.outputs.answer || JSON.stringify(json.data.outputs);
+      // データ構造の深い部分まで探索する
+      let rawText = "";
+      if (json && json.data && json.data.outputs) {
+        rawText = json.data.outputs.text || json.data.outputs.answer || JSON.stringify(json.data.outputs);
       }
 
-      const jsonStart = raw.indexOf("{");
-      const jsonEnd = raw.lastIndexOf("}");
-      const cleanJSON = raw.substring(jsonStart, jsonEnd + 1);
+      const cleanJSON = rawText.substring(rawText.indexOf("{"), rawText.lastIndexOf("}") + 1);
       const parsed = JSON.parse(cleanJSON);
       
       currentQuiz = {
         question: parsed.question,
-        options: (parsed.options || []).slice(0, 3),
-        correct_index: parseInt(parsed.correct_index || 0),
+        options: parsed.options.slice(0, 3),
+        correct_index: parseInt(parsed.correct_index),
         explanation: parsed.explanation
       };
       renderQuiz();
-    } catch (e) { 
+    } catch (e) {
+      document.getElementById('quizContent').innerHTML = "ERROR: Dify側のJSON設定を確認してください";
       console.error(e);
-      document.getElementById('quizContent').innerHTML = "<div style='color:var(--berry);'>CONNECTION ERROR. RETRYING...</div>";
-      setTimeout(fetchNewQuiz, 2000); 
     }
   }
 
   function renderQuiz() {
-    document.getElementById('quizContent').style.opacity = '1';
     document.getElementById('quizContent').innerHTML = `
-      <h2 class="word-title">GAP QUIZ</h2>
+      <h2 class="word-title">QUIZ</h2>
       <div class="question-box">${currentQuiz.question}</div>
       <div class="btn-group">
         ${currentQuiz.options.map((opt, i) => `<button class="btn" onclick="checkAnswer(${i}, this)">${opt}</button>`).join('')}
@@ -149,56 +140,31 @@
     timerInterval = setInterval(() => {
       timeLeft -= 100 / (s * 10);
       bar.style.width = timeLeft + "%";
-      if (timeLeft <= 0) { clearInterval(timerInterval); checkAnswer(-1); }
+      if (timeLeft <= 0) checkAnswer(-1);
     }, 100);
   }
 
   function checkAnswer(idx, btn) {
     clearInterval(timerInterval);
     const isCorrect = (idx === currentQuiz.correct_index);
+    if (isCorrect) { combo++; devLevel += 0.5; } else { combo = 0; devLevel = Math.max(30, devLevel - 0.3); if(btn) btn.style.borderColor = "var(--berry)"; }
     
-    if (isCorrect) {
-      combo++;
-      devLevel += 0.5;
-      updateCombo();
-      showOverlay(true);
-    } else {
-      combo = 0;
-      devLevel = Math.max(30, devLevel - 0.3);
-      updateCombo();
-      if(btn) btn.classList.add('shake');
-      showOverlay(false);
-    }
-    
+    updateCombo();
     document.getElementById('devValDisplay').innerText = "Lv." + devLevel.toFixed(1);
     localStorage.setItem('userLv', devLevel);
+    
+    document.getElementById('expContent').innerHTML = `
+      <div class="exp-result" style="color:${isCorrect ? 'var(--neon)' : 'var(--berry)'}">${isCorrect ? 'PERFECT!' : 'MISS!'}</div>
+      <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:15px; margin-bottom:20px; font-weight:bold;">正解: ${currentQuiz.options[currentQuiz.correct_index]}</div>
+      <div class="exp-body">${currentQuiz.explanation}</div>
+    `;
+    document.getElementById('expOverlay').classList.add('show');
   }
 
   function updateCombo() {
     const cBox = document.getElementById('comboContainer');
-    const fever = document.getElementById('feverEffect');
-    if (combo >= 2) {
-      document.getElementById('comboNum').innerText = combo;
-      cBox.style.opacity = "1";
-      cBox.style.transform = "scale(1.2)";
-      setTimeout(() => cBox.style.transform = "scale(1)", 100);
-      fever.style.opacity = combo >= 5 ? "1" : "0";
-    } else {
-      cBox.style.opacity = "0";
-      fever.style.opacity = "0";
-    }
-  }
-
-  function showOverlay(isCorrect) {
-    const content = document.getElementById('expContent');
-    content.innerHTML = `
-      <div class="exp-result" style="color:${isCorrect ? 'var(--neon)' : 'var(--berry)'}">
-        ${isCorrect ? '✨ PERFECT!' : '😢 MISS!'}
-      </div>
-      <div class="exp-meaning">Correct: ${currentQuiz.options[currentQuiz.correct_index]}</div>
-      <div style="color:var(--neon); font-weight:bold; margin-bottom:10px;">💡 Manager's Note:</div>
-      <div class="exp-body">${currentQuiz.explanation}</div>
-    `;
-    document.getElementById('expOverlay').classList.add('show');
+    document.getElementById('comboNum').innerText = combo;
+    cBox.style.opacity = combo >= 2 ? "1" : "0";
+    document.getElementById('feverEffect').style.opacity = combo >= 5 ? "1" : "0";
   }
 </script></body></html>
