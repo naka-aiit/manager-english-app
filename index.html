@@ -1,37 +1,42 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Soccer Final</title><style>
-  :root { --neon: #00f2ea; --berry: #ff0055; --bg: #050505; }
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Soccer Final v3.0</title><style>
+  :root { --neon: #00f2ea; --berry: #ff0055; --gold: #ffd700; --bg: #050505; }
   body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
   #appScreen { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
+  #feverEffect { position: absolute; inset:0; background: linear-gradient(45deg, rgba(255,0,150,0.1), rgba(0,242,234,0.1)); opacity: 0; pointer-events: none; z-index: 1; transition: 0.3s; }
   #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); width: 100%; z-index: 100; box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; }
   .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(0,0,0,0.3); }
   .level-box { font-weight: 900; font-size: 1.4rem; color: #fff; text-shadow: 0 0 10px var(--neon); font-style: italic; }
-  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; }
+  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; z-index: 10; }
   .word-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; color: var(--neon); font-style: italic; }
   .question-box { font-size: 1.3rem; line-height: 1.6; margin-bottom: 30px; font-weight: bold; }
   .btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; border: none; }
+  .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 18px; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; border: none; outline: none; }
+  .btn:active { transform: scale(0.96); background: var(--neon); color: #000; }
   #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: #0a0a10; border-top: 4px solid var(--neon); transform: translateY(110%); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; z-index: 200; border-radius: 30px 30px 0 0; }
   #expOverlay.active { transform: translateY(0); }
-  .swipe-hint { color: #555; font-size: 0.8rem; margin-top: auto; text-align: center; animation: bounce 2s infinite; }
+  .answer-badge { display: block; padding: 12px; background: var(--neon); color: #000; border-radius: 10px; font-weight: 900; margin: 15px 0; text-align: center; }
+  .explanation-text { line-height: 1.8; color: #eee; font-size: 1rem; white-space: pre-wrap; overflow-y: auto; flex: 1; text-align: left; }
+  .swipe-hint { color: #555; font-size: 0.8rem; margin-top: 15px; text-align: center; animation: bounce 2s infinite; }
   @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 </style></head><body>
 
-<audio id="bgm" loop></audio>
-<div id="appScreen">
+<audio id="bgm"></audio>
+<div id="appScreen" onclick="if(bgm.paused && bgm.src) bgm.play()">
+  <div id="feverEffect"></div>
   <div id="timerBar"></div>
   <div class="header">
     <div onclick="location.reload()" style="font-size:1.5rem; cursor:pointer;">🏠</div>
     <div class="level-box" id="devValDisplay">Lv.50.0</div>
-    <div onclick="toggleMute()" id="audioToggle" style="font-size:1.5rem; cursor:pointer;">🔊</div>
+    <div onclick="toggleAudio()" id="audioToggle" style="font-size:1.5rem; cursor:pointer;">🔊</div>
   </div>
   <div id="quizContent"></div>
   <div id="expOverlay">
-    <div style="width:50px; height:6px; background:rgba(255,255,255,0.2); border-radius:3px; margin:-15px auto 25px;"></div>
-    <div id="expContent" style="flex:1; overflow-y:auto;"></div>
+    <div style="width:50px; height:6px; background:rgba(255,255,255,0.2); border-radius:3px; margin:-15px auto 20px;"></div>
+    <div id="expContent" style="display:flex; flex-direction:column; height:100%;"></div>
     <div class="swipe-hint">▲ SWIPE UP TO NEXT STAGE ▲</div>
   </div>
   <div id="startScreen" style="position:absolute; inset:0; background:#000; z-index:300; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-    <h1 style="font-size:4rem; font-style:italic; background:linear-gradient(to right, #00f2ea, #ff0055); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">GAP STUDY</h1>
+    <h1 style="font-size:4rem; font-style:italic; background:linear-gradient(to right, var(--neon), var(--berry)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">GAP STUDY</h1>
     <button class="btn" onclick="startGame()" style="width:240px; background:var(--neon); color:#000; margin-top:50px;">SESSION START</button>
   </div>
 </div>
@@ -42,9 +47,23 @@
   let devLevel = parseFloat(localStorage.getItem('userLv')) || 50.0;
   let currentQuiz = null;
   let timerInterval = null;
+  let combo = 0;
   const bgm = document.getElementById('bgm');
 
-  // スワイプ機能の実装
+  // 音楽制御（無限ランダムループ）
+  bgm.onended = () => playRandomBGM();
+  function playRandomBGM() {
+    const tracks = ['1.mp3', '2.mp3', '3.mp3'];
+    bgm.src = tracks[Math.floor(Math.random() * tracks.length)];
+    bgm.volume = 0.3;
+    bgm.play().catch(()=>{});
+  }
+  function toggleAudio() {
+    bgm.muted = !bgm.muted;
+    document.getElementById('audioToggle').innerText = bgm.muted ? "0🔇" : "🔊";
+  }
+
+  // スワイプ次へ
   let startY;
   document.getElementById('expOverlay').addEventListener('touchstart', e => startY = e.touches[0].pageY);
   document.getElementById('expOverlay').addEventListener('touchend', e => {
@@ -53,7 +72,7 @@
 
   function startGame() {
     document.getElementById('startScreen').style.display = 'none';
-    bgm.src = '1.mp3'; bgm.play().catch(()=>{});
+    playRandomBGM();
     fetchNewQuiz();
   }
 
@@ -69,7 +88,13 @@
       const json = await res.json();
       const raw = json.data.outputs.text;
       const parsed = JSON.parse(raw.substring(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
-      currentQuiz = { question: parsed.question, options: parsed.options.slice(0, 3), correct_index: parseInt(parsed.correct_index), explanation: parsed.explanation };
+      
+      currentQuiz = { 
+        question: parsed.question, 
+        options: parsed.options.slice(0, 3), 
+        correct_index: parseInt(parsed.correct_index), 
+        explanation: parsed.explanation 
+      };
       renderQuiz();
     } catch (e) { setTimeout(fetchNewQuiz, 1000); }
   }
@@ -97,16 +122,22 @@
   function checkAnswer(idx) {
     clearInterval(timerInterval);
     const isCorrect = (idx === currentQuiz.correct_index);
-    if (isCorrect) devLevel += 0.5; else devLevel = Math.max(30, devLevel - 0.3);
-    document.getElementById('devValDisplay').innerText = "Lv." + devLevel.toFixed(1);
+    if (isCorrect) { combo++; devLevel += 0.5; } else { combo = 0; devLevel = Math.max(30, devLevel - 0.3); }
+    
+    // UI更新
+    const lvNode = document.getElementById('devValDisplay');
+    lvNode.innerText = "Lv." + devLevel.toFixed(1);
+    lvNode.style.color = (devLevel >= 65) ? "var(--gold)" : "var(--neon)";
+    document.getElementById('feverEffect').style.opacity = combo >= 5 ? "1" : "0";
     localStorage.setItem('userLv', devLevel);
+
     document.getElementById('expContent').innerHTML = `
-      <div style="font-size:2.5rem; text-align:center; color:${isCorrect ? 'var(--neon)' : 'var(--berry)'}; font-weight:900;">${isCorrect ? 'PERFECT!' : 'MISS!'}</div>
-      <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:15px; margin:20px 0; font-weight:bold; text-align:center;">正解: ${currentQuiz.options[currentQuiz.correct_index]}</div>
-      <div style="line-height:1.7; color:#ccc; font-size:1.1rem;">${currentQuiz.explanation}</div>
+      <div style="font-size:2.5rem; text-align:center; color:${isCorrect ? 'var(--neon)' : 'var(--berry)'}; font-weight:900;">
+        ${isCorrect ? 'PERFECT!' : 'MISS!'}
+      </div>
+      <div class="answer-badge">正解: ${currentQuiz.options[currentQuiz.correct_index]}</div>
+      <div class="explanation-text">${currentQuiz.explanation}</div>
     `;
     document.getElementById('expOverlay').classList.add('active');
   }
-
-  function toggleMute() { bgm.muted = !bgm.muted; document.getElementById('audioToggle').innerText = bgm.muted ? "🔇" : "🔊"; }
 </script></body></html>
