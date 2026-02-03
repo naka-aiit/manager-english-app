@@ -1,37 +1,38 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY SPEED</title><style>
-  :root { --neon: #00f2ea; --berry: #ff0055; --bg: #000; }
-  body { background-color: #000; color: white; font-family: sans-serif; margin: 0; height: 100vh; overflow: hidden; touch-action: none; }
-  #appScreen { width: 100%; max-width: 400px; height: 100%; margin: 0 auto; background: #000; position: relative; display: flex; flex-direction: column; }
-  #timerBar { position: absolute; top: 0; left: 0; height: 5px; background: var(--neon); width: 100%; z-index: 100; transition: width 0.1s linear; }
-  .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
-  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 25px; text-align: center; }
-  .btn-group { display: flex; flex-direction: column; gap: 12px; }
-  .btn { background: #1a1a1a; border: 1px solid #333; color: white; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; outline: none; }
-  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: rgba(0,0,0,0.95); border-top: 3px solid var(--neon); transform: translateY(100%); transition: 0.3s ease-out; padding: 25px; box-sizing: border-box; z-index: 200; border-radius: 25px 25px 0 0; display: flex; flex-direction: column; }
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY ELITE - HYPER SPEED</title><style>
+  :root { --neon: #00f2ea; --berry: #ff0055; }
+  html, body { height: 100%; margin: 0; padding: 0; background-color: #000; color: white; font-family: sans-serif; overflow: hidden; }
+  #appScreen { width: 100%; max-width: 400px; height: 100%; margin: 0 auto; position: relative; display: flex; flex-direction: column; background: #000; }
+  #timerBar { position: absolute; top: 0; left: 0; height: 4px; background: var(--neon); width: 100%; z-index: 100; transition: width 0.1s linear; }
+  .header { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; height: 50px; }
+  #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 20px; text-align: center; }
+  .btn-group { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+  .btn { background: #111; border: 1px solid #222; color: white; padding: 16px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 90%; background: rgba(0,0,0,0.98); border-top: 3px solid var(--neon); transform: translateY(100%); transition: 0.25s ease-out; padding: 20px; box-sizing: border-box; z-index: 200; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; }
   #expOverlay.active { transform: translateY(0); }
+  #expBody { flex: 1; overflow-y: auto; line-height: 1.5; color: #bbb; font-size: 0.95rem; margin-bottom: 10px; }
+  .next-btn { background: var(--neon); color: #000; padding: 16px; border-radius: 50px; font-weight: 900; text-align: center; cursor: pointer; flex-shrink: 0; }
   #startScreen { position: absolute; inset: 0; background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-  .loading { font-size: 1rem; color: var(--neon); font-weight: bold; }
 </style></head><body>
 
-<audio id="bgm" loop preload="auto"></audio>
+<audio id="bgm" preload="auto"></audio>
 
 <div id="appScreen">
   <div id="timerBar"></div>
   <div class="header">
-    <div onclick="backToHome()">🏠</div>
+    <div onclick="backToHome()" style="cursor:pointer;">🏠</div>
     <div id="lvDisp" style="color:var(--neon); font-weight:900;">Lv.50.0</div>
-    <div onclick="toggleMute()" id="muteBtn">🔊</div>
+    <div onclick="toggleMute()" id="muteBtn" style="cursor:pointer;">🔊</div>
   </div>
   <div id="quizContent"></div>
   <div id="expOverlay">
-    <div id="expResult" style="font-size:2.5rem; font-weight:900; text-align:center;"></div>
-    <div id="ansBadge" style="background:var(--neon); color:#000; padding:10px; border-radius:10px; text-align:center; font-weight:bold; margin:15px 0;"></div>
-    <div id="expBody" style="line-height:1.6; color:#ccc; overflow-y:auto; flex:1; font-size:0.95rem;"></div>
-    <div style="background:var(--neon); color:#000; padding:18px; border-radius:50px; font-weight:900; text-align:center; margin-top:15px;" onclick="fetchQuiz()">NEXT STAGE</div>
+    <div id="expResult" style="font-size:2rem; font-weight:900; text-align:center; margin-bottom:10px;"></div>
+    <div id="ansBadge" style="background:var(--neon); color:#000; padding:10px; border-radius:10px; text-align:center; font-weight:bold; margin-bottom:10px;"></div>
+    <div id="expBody"></div>
+    <div class="next-btn" onclick="fetchQuiz()">NEXT STAGE</div>
   </div>
   <div id="startScreen">
-    <div style="font-size:3rem; font-weight:900; color:var(--neon); margin-bottom:40px;">GAP STUDY</div>
-    <button class="btn" onclick="startGame()" style="width:200px; background:var(--neon); color:#000;">START</button>
+    <div style="font-size:3.5rem; font-weight:900; color:var(--neon); margin-bottom:40px; font-style:italic;">GAP STUDY</div>
+    <div class="btn" onclick="startGame()" style="width:220px; background:var(--neon); color:#000; text-align:center; border:none;">SESSION START</div>
   </div>
 </div>
 
@@ -40,10 +41,19 @@
   let devLevel = parseFloat(localStorage.getItem('userLv')) || 50.0;
   let currentQuiz = null;
   let timerInterval = null;
+  let lastTrack = 0;
   const bgm = document.getElementById('bgm');
 
-  // ★音楽ファイルをセット。1.mp3をメインにします（ループ設定）
-  bgm.src = '1.mp3'; 
+  // BGMの切り替え（より確実な方法）
+  function playRandomBGM() {
+    const tracks = ['1.mp3', '2.mp3', '3.mp3'];
+    let idx;
+    do { idx = Math.floor(Math.random() * 3); } while (idx === lastTrack);
+    lastTrack = idx;
+    bgm.src = tracks[idx];
+    bgm.play().catch(()=>{});
+  }
+  bgm.onended = playRandomBGM;
 
   function toggleMute() {
     bgm.muted = !bgm.muted;
@@ -52,8 +62,7 @@
 
   function startGame() {
     document.getElementById('startScreen').style.display = 'none';
-    // 音楽はここで1回だけ再生開始。以後、fetchQuizでは触らない。
-    bgm.play().catch(() => {});
+    playRandomBGM();
     fetchQuiz();
   }
 
@@ -65,16 +74,19 @@
   }
 
   async function fetchQuiz() {
-    // クイズ取得中に音楽を止めないため、bgmに関する処理は一切入れない
     document.getElementById('expOverlay').classList.remove('active');
-    document.getElementById('quizContent').innerHTML = "<div class='loading'>分析中...</div>";
+    document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon); font-weight:bold; font-size:1.2rem;'>GAP ANALYZING...</div>";
     
     try {
-      const randomSeed = Math.floor(Math.random() * 9999);
+      // 通信の無駄を省くため、最小限のデータのみ送信
       const res = await fetch("https://api.dify.ai/v1/workflows/run", {
         method: "POST",
         headers: { "Authorization": "Bearer " + DIFY_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs: { "level": devLevel.toFixed(1), "seed": randomSeed }, response_mode: "blocking", user: "u_" + randomSeed })
+        body: JSON.stringify({ 
+          inputs: { "level": devLevel.toFixed(1), "seed": Math.random() }, 
+          response_mode: "blocking", 
+          user: "u_" + Date.now() 
+        })
       });
       const data = await res.json();
       const raw = data.data.outputs.text;
@@ -82,13 +94,11 @@
       currentQuiz = JSON.parse(jsonMatch[0]);
       
       document.getElementById('quizContent').innerHTML = `
-        <div style="font-size:1.2rem; font-weight:bold; margin-bottom:25px;">${currentQuiz.question}</div>
-        <div class="btn-group">${currentQuiz.options.slice(0,3).map((o, i) => `<button class="btn" onclick="check(${i})">${o}</button>`).join('')}</div>
+        <div style="font-size:1.2rem; font-weight:bold; margin-bottom:20px; line-height:1.4;">${currentQuiz.question}</div>
+        <div class="btn-group">${currentQuiz.options.slice(0,3).map((o, i) => `<div class="btn" onclick="check(${i})">${o}</div>`).join('')}</div>
       `;
       startTimer(15);
-    } catch (e) {
-      setTimeout(fetchQuiz, 300); // 失敗したら即座にリトライ
-    }
+    } catch (e) { setTimeout(fetchQuiz, 300); }
   }
 
   function startTimer(s) {
