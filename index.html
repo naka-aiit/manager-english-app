@@ -1,76 +1,47 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>GAP STUDY - Professional Workflow Edition</title><style>
-  :root { --neon: #00f2ea; --berry: #ff0055; --gold: #ffd700; --bg: #050505; }
-  body { background-color: var(--bg); color: white; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-  #appScreen { width: 100%; max-width: 420px; height: 100%; max-height: 880px; background: radial-gradient(circle at center, #101025 0%, #000 100%); position: relative; border: 1px solid #222; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,1); }
-  #feverEffect { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle, rgba(0,242,234,0.15) 0%, transparent 70%); opacity: 0; pointer-events: none; z-index: 1; transition: opacity 0.4s; }
-  #timerContainer { width: 100%; height: 5px; background: rgba(255,255,255,0.1); position: absolute; top: 0; left: 0; z-index: 1000; }
-  #timerBar { width: 100%; height: 100%; background: linear-gradient(to right, var(--neon), #0080ff); box-shadow: 0 0 15px var(--neon); transition: width 0.1s linear; }
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>GAP STUDY - Soccer Manager v1.2</title><style>
+  :root { --neon: #00f2ea; --berry: #ff0055; --bg: #050505; }
+  body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+  #appScreen { width: 100%; max-width: 420px; height: 100%; max-height: 850px; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
+  #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); width: 100%; z-index: 100; box-shadow: 0 0 10px var(--neon); transition: width 0.1s linear; }
   .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-  .level-box { font-weight: 900; font-size: 1.5rem; color: #fff; text-shadow: 0 0 15px var(--neon); font-style: italic; letter-spacing: 1px; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } }
-  #quizArea { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; position: relative; z-index: 10; }
+  .level-box { font-weight: 900; font-size: 1.5rem; color: #fff; text-shadow: 0 0 15px var(--neon); font-style: italic; }
+  #quizArea { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; }
   .quiz-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 30px; width: 100%; box-sizing: border-box; backdrop-filter: blur(10px); }
-  .word-title { font-size: 2.8rem; font-weight: 900; color: var(--neon); margin: 0 0 15px; text-align: center; font-style: italic; }
-  .question-text { font-size: 1.25rem; line-height: 1.6; text-align: center; margin-bottom: 30px; font-weight: 500; color: #eee; }
-  .btn-list { display: flex; flex-direction: column; gap: 16px; width: 100%; }
-  .choice-btn { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 20px; border-radius: 18px; font-size: 1.15rem; font-weight: bold; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: center; }
+  .choice-btn { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 20px; border-radius: 18px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; margin: 8px 0; }
   .choice-btn:active { transform: scale(0.97); background: var(--neon); color: #000; }
-  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 80%; background: rgba(5,5,10,0.98); border-top: 4px solid var(--neon); transform: translateY(110%); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1); display: flex; flex-direction: column; padding: 35px; box-sizing: border-box; z-index: 2000; border-radius: 40px 40px 0 0; }
+  #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: rgba(5,5,10,0.98); border-top: 4px solid var(--neon); transform: translateY(110%); transition: 0.4s; padding: 30px; box-sizing: border-box; z-index: 2000; border-radius: 40px 40px 0 0; display: flex; flex-direction: column; }
   #expOverlay.active { transform: translateY(0); }
-  .result-header { font-size: 3rem; font-weight: 950; text-align: center; margin-bottom: 20px; font-style: italic; }
-  .answer-box { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 15px; margin-bottom: 25px; border-left: 5px solid var(--neon); }
-  .advice-title { color: var(--neon); font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; text-transform: uppercase; }
-  .advice-text { color: #ccc; line-height: 1.8; font-size: 1.05rem; }
-  .next-btn { margin-top: auto; background: linear-gradient(45deg, var(--neon), #0080ff); color: #000; font-weight: 900; text-align: center; padding: 22px; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 20px rgba(0,242,234,0.3); font-size: 1.3rem; }
-  #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-  .logo-main { font-size: 4.5rem; font-weight: 950; font-style: italic; line-height: 0.9; background: linear-gradient(to bottom, #fff, var(--neon)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
-  .logo-sub { color: #555; letter-spacing: 8px; font-size: 0.9rem; margin: 15px 0 60px; font-weight: bold; }
+  .home-btn { position: absolute; top: 20px; right: 20px; background: none; border: 1px solid var(--neon); color: var(--neon); padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; z-index: 100; }
 </style></head><body><audio id="bgm" src="1.mp3" loop></audio><div id="appScreen">
-  <div id="feverEffect"></div>
-  <div id="timerContainer"><div id="timerBar"></div></div>
-  <div class="header">
-    <div class="level-box" id="devValDisplay">Lv.50.0</div>
-    <div id="soundToggle" onclick="toggleAudio()" style="font-size:1.8rem; cursor:pointer; opacity:0.7;">🔊</div>
-  </div>
+  <div id="timerBar"></div>
+  <button class="home-btn" onclick="location.reload()">HOME</button>
+  <div class="header"><div class="level-box" id="lvDisplay">Lv.50.0</div><div onclick="document.getElementById('bgm').play()" style="cursor:pointer; font-size:1.6rem;">🔊</div></div>
   <div id="quizArea">
-    <div id="startScreen">
-      <h1 class="logo-main">GAP<br>STUDY</h1>
-      <p class="logo-sub">WORKFLOW EDITION</p>
-      <button class="choice-btn" onclick="initApp()" style="width:240px; background:var(--neon); color:#000; border:none; font-size:1.4rem;">▶ START</button>
+    <div id="startScreen" style="position:absolute; inset:0; background:#000; z-index:3000; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+      <h1 style="font-size:4rem; font-style:italic; color:var(--neon); margin:0;">GAP STUDY</h1>
+      <button class="choice-btn" onclick="initApp()" style="width:200px; background:var(--neon); color:#000; margin-top:50px;">▶ START</button>
     </div>
     <div id="mainContent" style="width:100%; display:none;">
-      <div class="word-title">QUIZ</div>
-      <div class="quiz-card">
-        <div class="question-text" id="qText"></div>
-        <div class="btn-list" id="choiceList"></div>
-      </div>
+      <h2 style="font-size:2.5rem; font-style:italic; color:var(--neon); margin-bottom:10px;">QUIZ</h2>
+      <div class="quiz-card"><div id="qText" style="font-size:1.2rem; margin-bottom:20px; line-height:1.5;"></div><div id="choiceList"></div></div>
     </div>
   </div>
   <div id="expOverlay">
-    <div id="resHeader" class="result-header"></div>
-    <div class="answer-box">
-      <div class="advice-title">Correct Answer</div>
-      <div id="correctAnswerText" style="font-size:1.3rem; font-weight:bold;"></div>
+    <h2 id="resHeader" style="font-size:2.5rem; text-align:center; margin:0;"></h2>
+    <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:15px; margin:15px 0;">
+      <div style="color:var(--neon); font-size:0.9rem;">Correct:</div>
+      <div id="correctText" style="font-size:1.1rem; font-weight:bold;"></div>
     </div>
-    <div class="advice-title">Manager's Coach</div>
-    <div class="advice-text" id="adviceText"></div>
-    <div class="next-btn" onclick="fetchNewQuiz()">GO TO NEXT</div>
-  </div></div><script>
-  // ==========================================
-  // 【Dify Workflow専用設定】
-  // ==========================================
-  const DIFY_API_KEY = "app-vxVUBvLVxHB7AtCFPpSSzwFX"; // あなたの秘密鍵
-  const DIFY_API_URL = "https://api.dify.ai/v1/workflows/run"; // Workflow専用URL
+    <div id="adviceText" style="line-height:1.6; color:#ccc; font-size:0.95rem; flex:1; overflow-y:auto;"></div>
+    <button class="choice-btn" onclick="fetchNewQuiz()" style="background:var(--neon); color:#000; margin-top:10px;">NEXT QUIZ</button>
+  </div>
+</div><script>
+  const DIFY_API_KEY = "app-vxVUBvLVxHB7AtCFPpSSzwFX";
+  const DIFY_API_URL = "https://api.dify.ai/v1/workflows/run";
 
-  let devLevel = parseFloat(localStorage.getItem('userDevLevel')) || 50.0;
+  let devLevel = parseFloat(localStorage.getItem('userLv')) || 50.0;
   let currentQuiz = null;
   let timerObj = null;
-
-  function toggleAudio() {
-    const bgm = document.getElementById('bgm');
-    bgm.muted = !bgm.muted;
-    document.getElementById('soundToggle').innerText = bgm.muted ? "🔇" : "🔊";
-  }
 
   function initApp() {
     document.getElementById('bgm').play().catch(()=>{});
@@ -85,27 +56,37 @@
     document.getElementById('timerBar').style.width = '100%';
 
     try {
-      const response = await fetch(DIFY_API_URL, {
+      const res = await fetch(DIFY_API_URL, {
         method: "POST",
         headers: { "Authorization": `Bearer ${DIFY_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          inputs: { "level": devLevel.toFixed(1) }, // Workflow内の開始変数名に合わせる
+          inputs: { "level": devLevel.toFixed(1) },
           response_mode: "blocking",
           user: "onjou-sama"
         })
       });
 
-      const data = await response.json();
-      // Workflowの出力は outputs の中にある
-      const rawText = data.data.outputs.text || data.data.outputs.answer || JSON.stringify(data.data.outputs);
+      const jsonResponse = await res.json();
+      console.log("Raw Response:", jsonResponse);
+
+      // マニュアルに基づき data.outputs を正確に抽出
+      const rawText = jsonResponse.data.outputs.text || jsonResponse.data.outputs.answer || JSON.stringify(jsonResponse.data.outputs);
 
       const jsonStart = rawText.indexOf("{");
       const jsonEnd = rawText.lastIndexOf("}");
-      currentQuiz = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+      const parsed = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+      
+      currentQuiz = {
+        question: parsed.question,
+        options: parsed.options.slice(0, 3), // 常に3つに制限
+        correct_index: parsed.correct_index,
+        explanation: parsed.explanation
+      };
+      
       renderQuiz();
-    } catch (error) {
-      console.error("Dify Error:", error);
-      alert("通信エラー。Workflowのエンドポイントまたは変数名を確認してください。");
+    } catch (e) {
+      console.error("Fetch Error:", e);
+      alert("通信エラーが発生しました。リロードしてスタートしてください。");
     }
   }
 
@@ -122,34 +103,27 @@
     startTimer(12);
   }
 
-  function startTimer(seconds) {
+  function startTimer(s) {
     const bar = document.getElementById('timerBar');
     let timeLeft = 100;
-    const step = 100 / (seconds * 10);
     clearInterval(timerObj);
     timerObj = setInterval(() => {
-      timeLeft -= step; bar.style.width = timeLeft + "%";
+      timeLeft -= 100 / (s * 10);
+      bar.style.width = timeLeft + "%";
       if (timeLeft <= 0) { clearInterval(timerObj); checkAnswer(-1); }
     }, 100);
   }
 
-  function checkAnswer(userIdx) {
+  function checkAnswer(idx) {
     clearInterval(timerObj);
-    const isCorrect = (userIdx === currentQuiz.correct_index);
-    if (isCorrect) {
-      devLevel += 0.5;
-      document.getElementById('resHeader').innerText = "PERFECT!";
-      document.getElementById('resHeader').style.color = "var(--neon)";
-      document.getElementById('feverEffect').style.opacity = "1";
-      setTimeout(()=> document.getElementById('feverEffect').style.opacity = "0", 600);
-    } else {
-      devLevel -= 0.3;
-      document.getElementById('resHeader').innerText = "DON'T MIND!";
-      document.getElementById('resHeader').style.color = "var(--berry)";
-    }
-    localStorage.setItem('userDevLevel', devLevel);
-    document.getElementById('devValDisplay').innerText = `Lv.${devLevel.toFixed(1)}`;
-    document.getElementById('correctAnswerText').innerText = currentQuiz.options[currentQuiz.correct_index];
+    const isCorrect = (idx === currentQuiz.correct_index);
+    if (isCorrect) devLevel += 0.5; else devLevel -= 0.3;
+    document.getElementById('lvDisplay').innerText = `Lv.${devLevel.toFixed(1)}`;
+    localStorage.setItem('userLv', devLevel);
+    document.getElementById('resHeader').innerText = isCorrect ? "PERFECT!" : "MISS!";
+    document.getElementById('resHeader').style.color = isCorrect ? "var(--neon)" : "var(--berry)";
+    document.getElementById('correctText').innerText = currentQuiz.options[currentQuiz.correct_index];
     document.getElementById('adviceText').innerText = currentQuiz.explanation;
     document.getElementById('expOverlay').classList.add('active');
-  }</script></body></html>
+  }
+</script></body></html>
