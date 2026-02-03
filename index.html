@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Real Past Exam</title><style>
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Non-Stop Edition</title><style>
   :root { --neon: #00f2ea; --berry: #ff0055; --bg: #000; }
   body { background-color: #000; color: white; font-family: sans-serif; margin: 0; height: 100vh; overflow: hidden; touch-action: none; }
   #appScreen { width: 100%; max-width: 400px; height: 100%; margin: 0 auto; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; display: flex; flex-direction: column; }
@@ -14,7 +14,7 @@
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 </style></head><body>
 
-<audio id="bgm" preload="auto"></audio>
+<audio id="bgm" loop preload="auto"></audio>
 <div id="appScreen">
   <div id="timerBar"></div>
   <div class="header">
@@ -27,7 +27,7 @@
     <div id="expResult" style="font-size:3rem; font-weight:900; text-align:center;"></div>
     <div id="ansBadge" style="background:var(--neon); color:#000; padding:12px; border-radius:15px; text-align:center; font-weight:900; margin:15px 0;"></div>
     <div id="expBody" style="line-height:1.8; color:#eee; white-space:pre-wrap; overflow-y:auto; flex:1; font-size:1.05rem;"></div>
-    <div style="background:var(--neon); color:#000; padding:20px; border-radius:50px; font-weight:900; text-align:center; margin-top:20px; cursor:pointer;" onclick="changeTrackAndFetch()">NEXT GAP</div>
+    <div style="background:var(--neon); color:#000; padding:20px; border-radius:50px; font-weight:900; text-align:center; margin-top:20px; cursor:pointer;" onclick="fetchQuiz()">NEXT GAP</div>
   </div>
   <div id="startScreen">
     <div style="font-size:3rem; font-weight:950; font-style:italic; margin-bottom:50px; background: linear-gradient(45deg, var(--neon), var(--berry)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">GAP STUDY</div>
@@ -43,19 +43,30 @@
   const bgm = document.getElementById('bgm');
 
   const tracks = ['1.mp3', '2.mp3', '3.mp3'];
+
+  // 曲が終わった時だけ次の曲を抽選（NEXTボタンでは切り替えない）
+  bgm.onended = () => {
+    playRandomTrack();
+  };
+
   function playRandomTrack() {
-    bgm.src = tracks[Math.floor(Math.random() * tracks.length)];
+    const next = tracks[Math.floor(Math.random() * tracks.length)];
+    // 現在の曲と違う場合のみセットして再生
+    if (bgm.src.indexOf(next) === -1) {
+      bgm.src = next;
+    }
     bgm.play().catch(() => {});
   }
 
-  function changeTrackAndFetch() {
-    playRandomTrack();
-    fetchQuiz();
+  function toggleAudio() {
+    bgm.muted = !bgm.muted;
+    document.getElementById('audioToggle').innerText = bgm.muted ? "🔇" : "🔊";
   }
 
   function startGame() {
     document.getElementById('startScreen').style.display = 'none';
-    playRandomTrack();
+    // スタート時に一度だけ再生開始
+    if (bgm.paused) playRandomTrack();
     fetchQuiz();
   }
 
@@ -64,6 +75,7 @@
     document.getElementById('expOverlay').classList.remove('active');
     document.getElementById('startScreen').style.display = 'flex';
     bgm.pause();
+    bgm.src = ""; // ホームでは曲を止める
   }
 
   async function fetchQuiz() {
@@ -86,11 +98,14 @@
       currentQuiz = JSON.parse(jsonMatch[0]);
       
       document.getElementById('quizContent').innerHTML = `
-        <div style="font-size:1.3rem; font-weight:800; line-height:1.6; margin-bottom:30px; color:#fff;">${currentQuiz.question}</div>
+        <div style="font-size:1.3rem; font-weight:800; line-height:1.6; margin-bottom:35px; color:#fff;">${currentQuiz.question}</div>
         <div class="btn-group">${currentQuiz.options.slice(0,3).map((o, i) => `<button class="btn" onclick="check(${i})">${o}</button>`).join('')}</div>
       `;
       startTimer(15);
-    } catch (e) { setTimeout(fetchQuiz, 1000); }
+    } catch (e) { 
+      // Qwenの速さを活かすため、リトライも早めに
+      setTimeout(fetchQuiz, 500); 
+    }
   }
 
   function startTimer(s) {
