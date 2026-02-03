@@ -1,22 +1,20 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - TikTok Edition</title><style>
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GAP STUDY - Awakening</title><style>
   :root { --neon: #00f2ea; --berry: #ff0055; --gold: #ffd700; --bg: #000; }
   body { background-color: var(--bg); color: white; font-family: "Segoe UI", sans-serif; margin: 0; height: 100vh; overflow: hidden; touch-action: none; }
   #appScreen { width: 100%; max-width: 400px; height: 100%; margin: 0 auto; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); position: relative; display: flex; flex-direction: column; overflow: hidden; }
   #timerBar { position: absolute; top: 0; left: 0; height: 6px; background: var(--neon); width: 100%; z-index: 100; box-shadow: 0 0 10px var(--neon); }
   .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-  .level-box { font-weight: 900; font-size: 1.4rem; color: #fff; font-style: italic; text-shadow: 0 0 10px var(--neon); }
+  .level-box { font-weight: 900; font-size: 1.4rem; color: #fff; font-style: italic; transition: 0.5s; }
   #quizContent { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 25px; text-align: center; }
   .question-box { font-size: 1.4rem; line-height: 1.6; margin-bottom: 35px; font-weight: 800; }
   .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; }
   .btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 22px; border-radius: 18px; font-size: 1.1rem; font-weight: 900; cursor: pointer; transition: 0.2s; }
   .btn:active { background: var(--neon); color: #000; transform: scale(0.95); }
   
-  /* 解説オーバーレイ：TikTokスタイル */
   #expOverlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: rgba(0,0,0,0.95); border-top: 4px solid var(--neon); transform: translateY(110%); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 30px; box-sizing: border-box; z-index: 200; border-radius: 40px 40px 0 0; display: flex; flex-direction: column; }
   #expOverlay.active { transform: translateY(0); }
   .tiktok-phrase { font-size: 1.6rem; font-weight: 900; color: #fff; text-shadow: 2px 2px var(--berry), -2px -2px var(--neon); line-height: 1.3; margin: 20px 0; font-style: italic; text-align: center; }
-  .gachi-exp { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; font-size: 0.95rem; color: #ccc; line-height: 1.6; }
-  .next-btn { background: var(--neon); color: #000; padding: 20px; border-radius: 50px; font-weight: 900; text-align: center; margin-top: auto; cursor: pointer; }
+  .gachi-exp { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; font-size: 0.95rem; color: #ccc; line-height: 1.8; white-space: pre-wrap; }
 </style></head><body>
 
 <audio id="bgm" loop></audio>
@@ -33,7 +31,7 @@
     <div id="expResult" style="font-size:3rem; font-weight:900; text-align:center;"></div>
     <div id="tiktokArea" class="tiktok-phrase"></div>
     <div id="gachiArea" class="gachi-exp"></div>
-    <div class="next-btn" onclick="fetchNewQuiz()">NEXT GAP ▲</div>
+    <div style="background:var(--neon); color:#000; padding:20px; border-radius:50px; font-weight:900; text-align:center; margin-top:auto; cursor:pointer;" onclick="fetchNewQuiz()">NEXT STAGE</div>
   </div>
   <div id="startScreen" style="position:absolute; inset:0; background:#000; z-index:300; display:flex; flex-direction:column; justify-content:center; align-items:center;">
     <h1 style="font-size:4rem; font-style:italic; background:linear-gradient(45deg, var(--neon), var(--berry)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">GAP STUDY</h1>
@@ -58,12 +56,19 @@
 
   async function fetchNewQuiz() {
     document.getElementById('expOverlay').classList.remove('active');
-    document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon)'>分析中...</div>";
+    document.getElementById('quizContent').innerHTML = "<div style='color:var(--neon); font-weight:900;'>ANALYZING GAP...</div>";
+    
     try {
+      // ★乱数を混ぜてAIに「新しい指示」だと思わせる
+      const spice = Math.floor(Math.random() * 1000); 
       const res = await fetch(DIFY_API_URL, {
         method: "POST",
         headers: { "Authorization": "Bearer " + DIFY_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs: { "level": devLevel.toFixed(1) }, response_mode: "blocking", user: "student_001" })
+        body: JSON.stringify({ 
+          inputs: { "level": devLevel.toFixed(1), "seed": spice }, 
+          response_mode: "blocking", 
+          user: "user_" + spice 
+        })
       });
       const json = await res.json();
       const raw = json.data.outputs.text;
@@ -95,9 +100,16 @@
   function checkAnswer(idx) {
     const isCorrect = (idx === currentQuiz.correct_index);
     if (isCorrect) devLevel += 0.5; else devLevel = Math.max(30, devLevel - 0.3);
-    document.getElementById('devValDisplay').innerText = "Lv." + devLevel.toFixed(1);
-    localStorage.setItem('userLv', devLevel);
+    
+    // UI更新（Lv.65以上でゴールド化）
+    const lvNode = document.getElementById('devValDisplay');
+    lvNode.innerText = "Lv." + devLevel.toFixed(1);
+    if (devLevel >= 65) {
+      lvNode.style.color = "var(--gold)";
+      lvNode.style.textShadow = "0 0 20px var(--gold)";
+    }
 
+    localStorage.setItem('userLv', devLevel);
     const [gachi, tiktok] = currentQuiz.explanation.split('\n\n');
     document.getElementById('expResult').innerText = isCorrect ? 'GOAL!' : 'MISS!';
     document.getElementById('expResult').style.color = isCorrect ? 'var(--neon)' : 'var(--berry)';
